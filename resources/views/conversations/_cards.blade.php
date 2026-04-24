@@ -45,40 +45,10 @@
             </div>
         </div>
 
-        <div class="mt-5 space-y-3">
+        <div class="mt-5">
             <a href="{{ route('conversations.show', $conversation) }}" class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-indigo-700">
                 Ver conversacion
             </a>
-
-            <div class="grid grid-cols-2 gap-2">
-                @if(!$isPaused)
-                    <form method="POST" action="{{ route('conversations.pause', $conversation) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="w-full rounded-2xl bg-rose-500 px-3 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white">Pausar</button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('conversations.resume', $conversation) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="w-full rounded-2xl bg-emerald-500 px-3 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white">Reanudar</button>
-                    </form>
-                @endif
-
-                @if(!$isTaken)
-                    <form method="POST" action="{{ route('conversations.take-over', $conversation) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="w-full rounded-2xl bg-amber-500 px-3 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white">Tomar</button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('conversations.release', $conversation) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="w-full rounded-2xl bg-slate-700 px-3 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white">Liberar</button>
-                    </form>
-                @endif
-            </div>
         </div>
     </article>
 @endforeach

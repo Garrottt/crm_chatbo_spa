@@ -29,11 +29,6 @@
                             @method('PATCH')
                             <button class="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white">Tomar control</button>
                         </form>
-                        <form method="POST" action="{{ route('conversations.release', $conversation) }}">
-                            @csrf
-                            @method('PATCH')
-                            <button class="rounded-2xl bg-slate-700 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white">Liberar control</button>
-                        </form>
                     </div>
                 </div>
             </section>

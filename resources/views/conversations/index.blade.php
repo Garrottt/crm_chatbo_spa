@@ -7,7 +7,7 @@
                         <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">Conversaciones</p>
                         <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">Control operativo</h1>
                         <p class="mt-3 max-w-2xl text-sm text-slate-300 md:text-base">
-                            Pausa el bot, toma control humano o detecta mensajes nuevos sin recargar la pagina.
+                            Revisa conversaciones y detecta mensajes nuevos sin recargar la pagina.
                         </p>
                     </div>
                     <div class="rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-slate-200">
