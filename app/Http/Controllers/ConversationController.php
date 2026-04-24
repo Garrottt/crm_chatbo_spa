@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -151,12 +152,27 @@ class ConversationController extends Controller
 
         $conversation->load('client');
 
-        $response = Http::post($this->chatbotEndpoint('/api/crm/send-message'), [
-            'whatsappNumber' => $conversation->client->whatsappNumber,
-            'content' => $request->validated('content'),
-            'conversationId' => $conversation->id,
-            'clientId' => $conversation->clientId,
-        ]);
+        if (! $conversation->client || empty($conversation->client->whatsappNumber)) {
+            return back()->with('error', 'La conversacion no tiene un cliente con numero de WhatsApp disponible.');
+        }
+
+        try {
+            $response = Http::connectTimeout(3)->timeout(10)->post($this->chatbotEndpoint('/api/crm/send-message'), [
+                'whatsappNumber' => $conversation->client->whatsappNumber,
+                'content' => $request->validated('content'),
+                'conversationId' => $conversation->id,
+                'clientId' => $conversation->clientId,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('No se pudo enviar el mensaje manual al chatbot.', [
+                'conversation_id' => $conversation->id,
+                'client_id' => $conversation->clientId,
+                'chatbot_base_url' => config('services.chatbot.base_url'),
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'No se pudo conectar con el servicio del bot. Revisa CHATBOT_BASE_URL en Render.');
+        }
 
         if (!$response->successful()) {
             return back()->with('error', 'No se pudo enviar el mensaje manual al cliente.');
