@@ -23,7 +23,7 @@ class UpsertSpecialistRequest extends FormRequest
                 $specialist ? 'nullable' : 'required',
                 'email',
                 'max:255',
-                Rule::unique('User', 'email')->ignore($userId, 'id'),
+                Rule::unique('users', 'email')->ignore($userId, 'id'),
             ],
             'password' => [$specialist ? 'nullable' : 'required', 'string', 'min:8'],
             'specialty' => ['nullable', 'string', 'max:255'],

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpsertServiceRequest;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -14,9 +15,21 @@ class ServiceController extends Controller
     {
         $this->ensureAdmin();
 
-        $services = Service::withCount(['bookings', 'specialists'])
-            ->orderBy('name')
-            ->get();
+        $query = Service::query()
+            ->withCount('bookings')
+            ->orderBy('name');
+
+        if (Schema::hasTable('Specialist') && Schema::hasTable('_SpecialistServices')) {
+            $query->withCount('specialists');
+        }
+
+        $services = $query->get();
+
+        if (!Schema::hasTable('Specialist') || !Schema::hasTable('_SpecialistServices')) {
+            $services->each(function (Service $service) {
+                $service->specialists_count = 0;
+            });
+        }
 
         return view('services.index', compact('services'));
     }

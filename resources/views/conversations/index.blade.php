@@ -35,6 +35,7 @@
             const grid = document.getElementById('conversation-grid');
             const endpoint = @json(route('conversations.summaries'));
             const seenState = new Map();
+            let fingerprint = null;
 
             const collectStateFromDom = () => {
                 grid?.querySelectorAll('[data-conversation-id]').forEach((card) => {
@@ -75,12 +76,21 @@
 
             const refreshConversations = async () => {
                 try {
-                    const response = await fetch(endpoint, {
+                    const url = new URL(endpoint, window.location.origin);
+                    if (fingerprint) {
+                        url.searchParams.set('fingerprint', fingerprint);
+                    }
+
+                    const response = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
                         },
                     });
+
+                    if (response.status === 204) {
+                        return;
+                    }
 
                     if (!response.ok) {
                         return;
@@ -92,6 +102,7 @@
                     }
 
                     grid.innerHTML = payload.html;
+                    fingerprint = payload.fingerprint || fingerprint;
                     applyNewBadges(payload.items || []);
                 } catch (error) {
                     console.error('No se pudieron actualizar las conversaciones.', error);

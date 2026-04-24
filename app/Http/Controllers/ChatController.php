@@ -12,7 +12,7 @@ class ChatController extends Controller
     // 1. Mostrar la bandeja de entrada
     public function index()
     {
-        // Traemos las conversaciones con sus clientes y últimos mensajes
+        // Traemos las conversaciones con sus clientes y Ãºltimos mensajes
         $conversations = Conversation::with('client')
             ->orderBy('updatedAt', 'desc')
             ->get();
@@ -20,7 +20,7 @@ class ChatController extends Controller
         return view('chat.index', compact('conversations'));
     }
 
-    // 2. Mostrar una conversación específica
+    // 2. Mostrar una conversaciÃ³n especÃ­fica
     public function show($id)
     {
         $conversation = Conversation::with(['client', 'messages' => function($query) {
@@ -39,12 +39,12 @@ class ChatController extends Controller
             'clientId' => 'required'
         ]);
 
-        // A. (Opcional) Aquí actualizarías el estado de la conversación en BD
+        // A. (Opcional) AquÃ­ actualizarÃ­as el estado de la conversaciÃ³n en BD
         // para decirle al bot de Node.js que se calle (ej: bot_paused = true)
         // Conversation::where('id', $conversationId)->update(['bot_paused' => true]);
 
-        // B. Enviar la petición HTTP a tu servidor Node.js
-        $response = Http::post('http://localhost:3000/api/crm/send-message', [
+        // B. Enviar la peticiÃ³n HTTP a tu servidor Node.js
+        $response = Http::post($this->chatbotEndpoint('/api/crm/send-message'), [
             'whatsappNumber' => $request->whatsappNumber,
             'content' => $request->content,
             'conversationId' => $conversationId,
@@ -56,5 +56,10 @@ class ChatController extends Controller
         }
 
         return back()->with('error', 'Error al comunicar con el motor de WhatsApp.');
+    }
+
+    private function chatbotEndpoint(string $path): string
+    {
+        return rtrim((string) config('services.chatbot.base_url'), '/') . $path;
     }
 }

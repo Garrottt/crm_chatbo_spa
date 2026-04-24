@@ -1,5 +1,6 @@
 <x-app-layout>
     @push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
     <style>
         .agenda-shell {
             background:
@@ -423,6 +424,18 @@
                         </div>
 
                         @if(auth()->user()?->isAdmin())
+                            <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
+                                <label for="specialist-select" class="text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">Especialista asignado</label>
+                                <div class="mt-3 flex gap-3">
+                                    <select id="specialist-select" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-500">
+                                        <option value="">Sin asignar</option>
+                                    </select>
+                                    <button id="action-assign-specialist" type="button" class="agenda-action bg-slate-900 px-4 text-white hover:bg-indigo-700">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+
                             <div class="grid gap-3">
                                 <button id="action-confirm" type="button" class="agenda-action bg-emerald-500 text-white hover:bg-emerald-600">
                                     Confirmar reserva
@@ -475,6 +488,7 @@
     </div>
 
     @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
@@ -503,6 +517,8 @@
             var actionConfirm = document.getElementById('action-confirm');
             var actionCancel = document.getElementById('action-cancel');
             var actionReschedule = document.getElementById('action-reschedule');
+            var actionAssignSpecialist = document.getElementById('action-assign-specialist');
+            var specialistSelect = document.getElementById('specialist-select');
             var submitCancel = document.getElementById('submit-cancel');
             var submitReschedule = document.getElementById('submit-reschedule');
             var closeCancelPanel = document.getElementById('close-cancel-panel');
@@ -514,6 +530,7 @@
             var eventSnapshot = new Map();
             var lastRefreshDiff = { created: 0, updated: 0 };
             var calendar = null;
+            var specialistOptionsLoaded = false;
 
             function formatDateTime(date) {
                 if (!date) return '-';
@@ -558,8 +575,39 @@
                 actionConfirm.disabled = disabled;
                 actionCancel.disabled = disabled;
                 actionReschedule.disabled = disabled;
+                actionAssignSpecialist.disabled = disabled;
                 submitCancel.disabled = disabled;
                 submitReschedule.disabled = disabled;
+            }
+
+            async function loadSpecialistOptions() {
+                if (!isAdmin || specialistOptionsLoaded || !specialistSelect) {
+                    return;
+                }
+
+                try {
+                    var response = await fetch('/api/specialists/options', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('No se pudo cargar la lista de especialistas.');
+                    }
+
+                    var specialists = await response.json();
+                    specialists.forEach(function(specialist) {
+                        var option = document.createElement('option');
+                        option.value = specialist.id;
+                        option.textContent = specialist.name;
+                        specialistSelect.appendChild(option);
+                    });
+
+                    specialistOptionsLoaded = true;
+                } catch (_error) {
+                    showFeedback('No se pudo cargar la lista de especialistas.', 'error');
+                }
             }
 
             function hideActionPanels() {
@@ -781,6 +829,9 @@
                 detailEndLabel.textContent = 'Bloques de hoy';
                 detailEnd.textContent = summary.totalBlocks + (summary.totalBlocks === 1 ? ' reserva' : ' reservas');
                 detailSummary.textContent = 'Resumen rapido del dia actual. Selecciona una reserva para ver el cliente, servicio, especialista y acciones disponibles.';
+                if (isAdmin && specialistSelect) {
+                    specialistSelect.value = '';
+                }
                 hideActionPanels();
             }
 
@@ -806,6 +857,7 @@
                 detailEnd.textContent = formatDateTime(endDate);
                 detailSummary.textContent = 'Reserva para ' + (event.extendedProps.client || 'cliente sin nombre') + ' en el servicio "' + (event.extendedProps.service || 'Sin servicio') + '" con ' + (event.extendedProps.specialist || 'especialista por asignar') + '. Estado actual: ' + meta.label + '.';
                 if (isAdmin) {
+                    specialistSelect.value = event.extendedProps.specialistId || '';
                     rescheduleStart.value = toInputValue(event.start);
                     rescheduleEnd.value = toInputValue(endDate);
                     cancelReason.value = '';
@@ -826,6 +878,7 @@
                 activeEvent.setExtendedProp('client', booking.client);
                 activeEvent.setExtendedProp('clientId', booking.clientId);
                 activeEvent.setExtendedProp('service', booking.service);
+                activeEvent.setExtendedProp('specialistId', booking.specialistId || '');
                 activeEvent.setExtendedProp('specialist', booking.specialist);
                 updateDetail(activeEvent);
                 updateStats(calendar.getEvents());
@@ -961,6 +1014,17 @@
                 closeReschedulePanel.addEventListener('click', function() {
                     hideActionPanels();
                 });
+
+                actionAssignSpecialist.addEventListener('click', function() {
+                    if (!activeEvent) {
+                        showFeedback('Primero selecciona una reserva.', 'error');
+                        return;
+                    }
+
+                    patchBooking('/api/bookings/' + activeEvent.id + '/assign-specialist', {
+                        specialistId: specialistSelect.value || null
+                    }, 'Especialista actualizado.');
+                });
             }
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1060,6 +1124,7 @@
             });
 
             calendar.render();
+            loadSpecialistOptions();
             renderDaySummary();
 
             autoRefreshTimer = window.setInterval(function() {

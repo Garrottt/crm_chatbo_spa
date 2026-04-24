@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'chatbot' => [
+        'base_url' => env('CHATBOT_BASE_URL', 'http://localhost:3001'),
+    ],
+
 ];

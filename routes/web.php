@@ -51,8 +51,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
 
     Route::get('/api/calendar-events', [BookingController::class, 'getCalendarEvents']);
+    Route::get('/api/specialists/options', [BookingController::class, 'specialistsOptions']);
     Route::patch('/api/bookings/{booking}/confirm', [BookingController::class, 'confirm']);
     Route::patch('/api/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
     Route::patch('/api/bookings/{booking}/reschedule', [BookingController::class, 'reschedule']);
+    Route::patch('/api/bookings/{booking}/assign-specialist', [BookingController::class, 'assignSpecialist']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });

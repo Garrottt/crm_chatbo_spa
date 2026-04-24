@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -29,17 +30,42 @@ class SpecialistController extends Controller
     {
         $this->ensureAdmin();
 
-        $specialists = Specialist::with(['user', 'services', 'availabilities'])
+        if (!Schema::hasTable('Specialist')) {
+            return view('specialists.index', [
+                'specialists' => collect(),
+            ]);
+        }
+
+        $query = Specialist::query()
             ->withCount('bookings')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        if (Schema::hasTable('users')) {
+            $query->with('user');
+        }
+
+        if (Schema::hasTable('_SpecialistServices')) {
+            $query->with('services');
+        }
+
+        if (Schema::hasTable('Availability')) {
+            $query->with('availabilities');
+        }
+
+        $specialists = $query->get();
 
         return view('specialists.index', compact('specialists'));
     }
 
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
         $this->ensureAdmin();
+
+        if (!Schema::hasTable('Specialist')) {
+            return redirect()
+                ->route('specialists.index')
+                ->with('error', 'El modulo de especialistas no esta disponible porque la tabla Specialist no existe en esta base de datos.');
+        }
 
         return view('specialists.create', $this->formData());
     }
@@ -48,11 +74,16 @@ class SpecialistController extends Controller
     {
         $this->ensureAdmin();
 
+        if (!Schema::hasTable('Specialist')) {
+            return redirect()
+                ->route('specialists.index')
+                ->with('error', 'No se puede crear especialistas porque la tabla Specialist no existe en esta base de datos.');
+        }
+
         $data = $request->validated();
 
         DB::transaction(function () use ($data) {
             $user = User::create([
-                'id' => (string) Str::uuid(),
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
@@ -80,7 +111,20 @@ class SpecialistController extends Controller
     {
         $this->ensureAdmin();
 
-        $specialist->load(['user', 'services', 'availabilities']);
+        $relations = [];
+        if (Schema::hasTable('users')) {
+            $relations[] = 'user';
+        }
+        if (Schema::hasTable('_SpecialistServices')) {
+            $relations[] = 'services';
+        }
+        if (Schema::hasTable('Availability')) {
+            $relations[] = 'availabilities';
+        }
+
+        if ($relations) {
+            $specialist->load($relations);
+        }
 
         return view('specialists.edit', $this->formData($specialist));
     }
@@ -89,7 +133,15 @@ class SpecialistController extends Controller
     {
         $this->ensureAdmin();
 
-        $specialist->load('user');
+        if (!Schema::hasTable('Specialist')) {
+            return redirect()
+                ->route('specialists.index')
+                ->with('error', 'No se puede actualizar especialistas porque la tabla Specialist no existe en esta base de datos.');
+        }
+
+        if (Schema::hasTable('users')) {
+            $specialist->load('user');
+        }
         $data = $request->validated();
 
         if (!$specialist->user && !empty($data['email']) && empty($data['password'])) {
@@ -112,7 +164,6 @@ class SpecialistController extends Controller
                 ]);
             } elseif (!empty($data['email'])) {
                 $user = User::create([
-                    'id' => (string) Str::uuid(),
                     'name' => $data['name'],
                     'email' => $data['email'],
                     'password' => Hash::make($data['password']),
@@ -151,6 +202,10 @@ class SpecialistController extends Controller
 
     private function syncAvailabilities(Specialist $specialist, array $availabilities): void
     {
+        if (!Schema::hasTable('Availability')) {
+            return;
+        }
+
         $specialist->availabilities()->delete();
 
         foreach ($availabilities as $dayOfWeek => $availability) {

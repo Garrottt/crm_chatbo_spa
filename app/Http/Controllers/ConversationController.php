@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SendConversationMessageRequest;
 use App\Models\Conversation;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -20,13 +21,20 @@ class ConversationController extends Controller
         return view('conversations.index', compact('conversations'));
     }
 
-    public function summaries()
+    public function summaries(Request $request)
     {
         $this->ensureAdmin();
+
+        $fingerprint = $this->conversationSummaryFingerprint();
+
+        if ($request->query('fingerprint') === $fingerprint) {
+            return response()->noContent();
+        }
 
         $conversations = $this->conversationListingQuery()->get();
 
         return response()->json([
+            'fingerprint' => $fingerprint,
             'html' => view('conversations._cards', compact('conversations'))->render(),
             'items' => $conversations->map(fn (Conversation $conversation) => [
                 'id' => $conversation->id,
@@ -51,15 +59,27 @@ class ConversationController extends Controller
         return view('conversations.show', compact('conversation'));
     }
 
-    public function messages(Conversation $conversation)
+    public function messages(Request $request, Conversation $conversation)
     {
         $this->ensureAdmin();
+
+        $latestMessageId = $conversation->messages()
+            ->latest('createdAt')
+            ->value('id');
+
+        if ($request->query('last_message_id') === $latestMessageId) {
+            return response()->json([
+                'hasChanges' => false,
+                'lastMessageId' => $latestMessageId,
+            ]);
+        }
 
         $conversation->load([
             'messages' => fn ($query) => $query->orderBy('createdAt'),
         ]);
 
         return response()->json([
+            'hasChanges' => true,
             'html' => view('conversations._messages', [
                 'messages' => $conversation->messages,
             ])->render(),
@@ -131,7 +151,7 @@ class ConversationController extends Controller
 
         $conversation->load('client');
 
-        $response = Http::post('http://localhost:3000/api/crm/send-message', [
+        $response = Http::post($this->chatbotEndpoint('/api/crm/send-message'), [
             'whatsappNumber' => $conversation->client->whatsappNumber,
             'content' => $request->validated('content'),
             'conversationId' => $conversation->id,
@@ -170,7 +190,7 @@ class ConversationController extends Controller
 
     private function conversationListingQuery()
     {
-        return Conversation::with(['client', 'takenOverByUser'])
+        return Conversation::with(['client', 'takenOverByUser', 'latestMessage'])
             ->withCount('messages')
             ->orderBy('updatedAt', 'desc');
     }
@@ -179,4 +199,22 @@ class ConversationController extends Controller
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
     }
+
+    private function chatbotEndpoint(string $path): string
+    {
+        return rtrim((string) config('services.chatbot.base_url'), '/') . $path;
+    }
+
+    private function conversationSummaryFingerprint(): string
+    {
+        $summary = Conversation::query()
+            ->selectRaw('COUNT(*) as total, MAX("updatedAt") as latest_updated_at')
+            ->first();
+
+        return implode('|', [
+            (string) ($summary?->total ?? 0),
+            (string) ($summary?->latest_updated_at ?? ''),
+        ]);
+    }
 }
+

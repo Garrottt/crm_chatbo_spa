@@ -134,7 +134,12 @@
             const refreshMessages = async () => {
                 try {
                     const shouldStickToBottom = isNearBottom();
-                    const response = await fetch(endpoint, {
+                    const url = new URL(endpoint, window.location.origin);
+                    if (lastMessageId) {
+                        url.searchParams.set('last_message_id', lastMessageId);
+                    }
+
+                    const response = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
@@ -147,7 +152,7 @@
 
                     const payload = await response.json();
 
-                    if (payload.lastMessageId && payload.lastMessageId !== lastMessageId) {
+                    if (payload.hasChanges && payload.lastMessageId && payload.lastMessageId !== lastMessageId) {
                         list.innerHTML = payload.html;
                         count.textContent = `${payload.count} mensajes`;
                         lastMessageId = payload.lastMessageId;

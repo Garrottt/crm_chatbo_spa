@@ -4,15 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Conversation;
+use App\Models\Specialist;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
-    public function getCalendarEvents(): JsonResponse
+    public function getCalendarEvents(Request $request): JsonResponse
     {
         $query = Booking::with(['service', 'client', 'specialist']);
+
+        $start = $request->date('start');
+        $end = $request->date('end');
+
+        if ($start && $end) {
+            $query->where(function ($bookingQuery) use ($start, $end) {
+                $bookingQuery
+                    ->whereBetween('scheduledAt', [$start, $end])
+                    ->orWhereBetween('endAt', [$start, $end])
+                    ->orWhere(function ($overlapQuery) use ($start, $end) {
+                        $overlapQuery
+                            ->where('scheduledAt', '<=', $start)
+                            ->where('endAt', '>=', $end);
+                    });
+            });
+        }
 
         $user = auth()->user();
 
@@ -39,13 +57,31 @@ class BookingController extends Controller
                     'client' => $booking->client->name ?? 'Sin nombre',
                     'clientId' => $booking->clientId,
                     'service' => $booking->service->name ?? 'Sin servicio',
-                    'specialist' => $booking->specialist->name ?? 'Sin asignar',
+                    'specialistId' => $booking->specialistId,
+                    'specialist' => $booking->specialist?->name ?? 'Sin asignar',
                     'status' => $booking->status,
                 ],
             ];
         });
 
         return response()->json($events);
+    }
+
+    public function specialistsOptions(): JsonResponse
+    {
+        if (!Schema::hasTable('Specialist')) {
+            return response()->json([]);
+        }
+
+        $specialists = Specialist::query()
+            ->where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($specialists->map(fn (Specialist $specialist) => [
+            'id' => $specialist->id,
+            'name' => $specialist->name,
+        ])->values());
     }
 
     public function confirm(Booking $booking)
@@ -75,7 +111,7 @@ class BookingController extends Controller
         ]);
 
         $booking->load(['client', 'service', 'specialist']);
-        $this->sendCancellationNotification($booking, $data['reason'] ?? null);
+        $this->dispatchNotificationAfterResponse($booking->id, 'cancellation', $data['reason'] ?? null);
 
         return response()->json([
             'message' => 'Reserva cancelada correctamente y cliente notificado.',
@@ -101,10 +137,38 @@ class BookingController extends Controller
         ]);
 
         $booking->load(['client', 'service', 'specialist']);
-        $this->sendRescheduleNotification($booking);
+        $this->dispatchNotificationAfterResponse($booking->id, 'reschedule');
 
         return response()->json([
             'message' => 'Reserva reagendada correctamente y cliente notificado.',
+            'booking' => $this->serializeBooking($booking),
+        ]);
+    }
+
+    public function assignSpecialist(Request $request, Booking $booking)
+    {
+        $this->ensureAdminCanManage($booking);
+
+        $rules = [
+            'specialistId' => ['nullable', 'string'],
+        ];
+
+        if (Schema::hasTable('Specialist')) {
+            $rules['specialistId'][] = 'exists:Specialist,id';
+        }
+
+        $data = $request->validate($rules);
+
+        $booking->update([
+            'specialistId' => $data['specialistId'] ?? null,
+        ]);
+
+        $booking->load(['client', 'service', 'specialist']);
+
+        return response()->json([
+            'message' => $booking->specialist
+                ? 'Especialista asignado correctamente.'
+                : 'Reserva marcada sin especialista asignado.',
             'booking' => $this->serializeBooking($booking),
         ]);
     }
@@ -120,7 +184,8 @@ class BookingController extends Controller
             'client' => $booking->client->name ?? 'Sin nombre',
             'clientId' => $booking->clientId,
             'service' => $booking->service->name ?? 'Sin servicio',
-            'specialist' => $booking->specialist->name ?? 'Sin asignar',
+            'specialistId' => $booking->specialistId,
+            'specialist' => $booking->specialist?->name ?? 'Sin asignar',
             'color' => $this->statusColor($booking->status),
         ];
     }
@@ -128,7 +193,7 @@ class BookingController extends Controller
     private function sendRescheduleNotification(Booking $booking): void
     {
         $message = sprintf(
-            'Hola %s, tu reserva para %s ha sido reagendada. Nueva fecha: %s. Hora de término: %s.',
+            'Hola %s, tu reserva para %s ha sido reagendada. Nueva fecha: %s. Hora de tÃ©rmino: %s.',
             $booking->client->name ?? 'cliente',
             $booking->service->name ?? 'tu servicio',
             optional($booking->scheduledAt)->timezone(config('app.timezone'))->translatedFormat('d \\d\\e F \\a \\l\\a\\s H:i'),
@@ -150,7 +215,7 @@ class BookingController extends Controller
             $message .= ' Motivo: ' . trim($reason) . '.';
         }
 
-        $message .= ' Si necesitas ayuda para reagendar, escríbenos y con gusto te apoyamos.';
+        $message .= ' Si necesitas ayuda para reagendar, escrÃ­benos y con gusto te apoyamos.';
 
         $this->sendWhatsAppNotification($booking, $message);
     }
@@ -168,7 +233,7 @@ class BookingController extends Controller
             ->first();
 
         try {
-            Http::post('http://localhost:3000/api/crm/send-message', [
+            Http::connectTimeout(2)->timeout(5)->post($this->chatbotEndpoint('/api/crm/send-message'), [
                 'whatsappNumber' => $client->whatsappNumber,
                 'content' => $message,
                 'conversationId' => $conversation?->id,
@@ -177,6 +242,26 @@ class BookingController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+    }
+
+    private function dispatchNotificationAfterResponse(string $bookingId, string $type, ?string $reason = null): void
+    {
+        app()->terminating(function () use ($bookingId, $type, $reason) {
+            $booking = Booking::with(['client', 'service', 'specialist'])->find($bookingId);
+
+            if (!$booking) {
+                return;
+            }
+
+            if ($type === 'cancellation') {
+                $this->sendCancellationNotification($booking, $reason);
+                return;
+            }
+
+            if ($type === 'reschedule') {
+                $this->sendRescheduleNotification($booking);
+            }
+        });
     }
 
     private function statusColor(?string $status): string
@@ -195,4 +280,10 @@ class BookingController extends Controller
 
         abort_unless($user && $user->isAdmin(), 403);
     }
+
+    private function chatbotEndpoint(string $path): string
+    {
+        return rtrim((string) config('services.chatbot.base_url'), '/') . $path;
+    }
 }
+

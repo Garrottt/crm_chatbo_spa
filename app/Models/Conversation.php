@@ -40,6 +40,11 @@ class Conversation extends Model
         return $this->hasMany(Message::class, 'conversationId', 'id');
     }
 
+    public function latestMessage()
+    {
+        return $this->hasOne(Message::class, 'conversationId', 'id')->latestOfMany('createdAt');
+    }
+
     public function lastBooking()
     {
         return $this->belongsTo(Booking::class, 'lastBookingId', 'id');
@@ -48,5 +53,15 @@ class Conversation extends Model
     public function takenOverByUser()
     {
         return $this->belongsTo(User::class, 'taken_over_by_user_id', 'id');
+    }
+
+    public function isBotPaused(): bool
+    {
+        return (bool) ($this->bot_paused || $this->botPaused);
+    }
+
+    public function isTakenOver(): bool
+    {
+        return (bool) $this->taken_over_by_agent;
     }
 }

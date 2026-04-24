@@ -44,8 +44,11 @@
                         $isOutbound = !$isInbound;
                         $isAgent = ($isOutbound && in_array($sender, ['agent', 'agente', 'admin', 'system'])); 
                         $isBot = ($isOutbound && !$isAgent);
-                        $isImage = ($msg->messageType === 'image' || strtolower($msg->type ?? '') === 'image');
-                        $imageUrl = $msg->mediaUrl ?? null; 
+                        $hasMedia = $msg->hasMedia();
+                        $hasMediaReference = $msg->hasMediaReference();
+                        $isImage = $msg->isImage();
+                        $mediaUrl = $msg->mediaUrl ?? null;
+                        $hasText = filled(trim((string) $msg->content));
                     @endphp
 
                     <div class="flex {{ $isInbound ? 'justify-start' : 'justify-end' }}">
@@ -58,21 +61,41 @@
                                 {{ $isBot ? '🤖 IA Ikigai' : ($isAgent ? '🧑‍💼 Agente' : '👤 Cliente') }}
                             </p>
                             
-                            @if($isImage)
-                                @if($imageUrl)
-                                    <img src="{{ $imageUrl }}" class="rounded-lg max-w-full sm:max-w-[300px] mb-2 border-2 border-white/20 shadow-inner">
-                                @else
-                                    <div class="bg-black/10 border border-white/20 rounded-lg p-4 mb-2 flex flex-col items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <p class="text-[10px] italic opacity-70">Procesando imagen...</p>
-                                    </div>
-                                @endif
+                            @if($hasMedia && $isImage)
+                                <a href="{{ $mediaUrl }}" target="_blank" rel="noopener noreferrer" class="mb-2 block">
+                                    <img
+                                        src="{{ $mediaUrl }}"
+                                        alt="Imagen enviada en la conversacion"
+                                        loading="lazy"
+                                        decoding="async"
+                                        class="max-h-80 max-w-full rounded-lg border-2 border-white/20 object-contain shadow-inner sm:max-w-[300px]"
+                                    >
+                                </a>
+                            @elseif($hasMedia)
+                                <a
+                                    href="{{ $mediaUrl }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="mb-2 inline-flex items-center rounded-xl border border-white/20 bg-black/10 px-3 py-2 text-xs font-bold"
+                                >
+                                    Ver archivo adjunto
+                                </a>
+                            @elseif($hasMediaReference && $isImage)
+                                <div class="mb-2 rounded-lg border border-dashed border-white/20 bg-black/10 px-3 py-3 text-xs">
+                                    <p class="font-bold">Imagen recibida</p>
+                                    <p class="mt-1 opacity-75">Aun no hay una URL disponible para visualizarla en el CRM.</p>
+                                </div>
+                            @elseif($hasMediaReference)
+                                <div class="mb-2 rounded-lg border border-dashed border-white/20 bg-black/10 px-3 py-3 text-xs">
+                                    <p class="font-bold">Adjunto recibido</p>
+                                    <p class="mt-1 opacity-75">El archivo existe, pero el CRM aun no puede abrirlo.</p>
+                                </div>
                             @endif
 
-                            @if(!empty(trim($msg->content)))
+                            @if($hasText)
                                 <p class="text-[13px] leading-relaxed font-medium">{{ $msg->content }}</p>
+                            @elseif(!$hasMediaReference)
+                                <p class="text-[12px] italic opacity-70">Mensaje sin contenido visible.</p>
                             @endif
                             
                             <span class="text-[9px] opacity-60 flex justify-end mt-1 font-bold">
