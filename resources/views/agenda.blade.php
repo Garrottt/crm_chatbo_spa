@@ -616,6 +616,13 @@
                 reschedulePanel.classList.remove('is-visible');
             }
 
+            function hasActionPanelOpen() {
+                if (!isAdmin) return false;
+
+                return cancelPanel.classList.contains('is-visible')
+                    || reschedulePanel.classList.contains('is-visible');
+            }
+
             function showCancelPanel() {
                 if (!isAdmin) return;
                 hideActionPanels();
@@ -835,11 +842,14 @@
                 hideActionPanels();
             }
 
-            function updateDetail(event) {
+            function updateDetail(event, options) {
                 if (!event) return;
 
+                var shouldPreserveInteraction = options && options.preserveInteraction;
                 activeEvent = event;
-                clearFeedback();
+                if (!shouldPreserveInteraction) {
+                    clearFeedback();
+                }
 
                 var meta = statusMeta(event.extendedProps.status);
                 var endDate = event.end || event.start;
@@ -857,11 +867,15 @@
                 detailEnd.textContent = formatDateTime(endDate);
                 detailSummary.textContent = 'Reserva para ' + (event.extendedProps.client || 'cliente sin nombre') + ' en el servicio "' + (event.extendedProps.service || 'Sin servicio') + '" con ' + (event.extendedProps.specialist || 'especialista por asignar') + '. Estado actual: ' + meta.label + '.';
                 if (isAdmin) {
-                    specialistSelect.value = event.extendedProps.specialistId || '';
-                    rescheduleStart.value = toInputValue(event.start);
-                    rescheduleEnd.value = toInputValue(endDate);
-                    cancelReason.value = '';
-                    hideActionPanels();
+                    if (!shouldPreserveInteraction) {
+                        specialistSelect.value = event.extendedProps.specialistId || '';
+                        rescheduleStart.value = toInputValue(event.start);
+                        rescheduleEnd.value = toInputValue(endDate);
+                        cancelReason.value = '';
+                        hideActionPanels();
+                    } else if (!hasActionPanelOpen()) {
+                        specialistSelect.value = event.extendedProps.specialistId || '';
+                    }
                 }
             }
 
@@ -898,7 +912,7 @@
                 }
 
                 activeEvent = refreshedEvent;
-                updateDetail(refreshedEvent);
+                updateDetail(refreshedEvent, { preserveInteraction: hasActionPanelOpen() });
             }
 
             function refetchCalendarEvents(showIndicator) {
@@ -1113,11 +1127,11 @@
                         setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' · Sin cambios recientes');
                     }
 
-                    if (activeEvent && diff.updatedIds.includes(activeEvent.id)) {
+                    if (activeEvent && diff.updatedIds.includes(activeEvent.id) && !hasActionPanelOpen()) {
                         showFeedback('La reserva seleccionada fue actualizada automaticamente.', 'info');
                     }
 
-                    if (activeEvent && diff.createdIds.includes(activeEvent.id)) {
+                    if (activeEvent && diff.createdIds.includes(activeEvent.id) && !hasActionPanelOpen()) {
                         showFeedback('La reserva seleccionada acaba de aparecer en la agenda.', 'info');
                     }
                 }
