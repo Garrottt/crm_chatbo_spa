@@ -10,6 +10,12 @@
         @method($method)
     @endif
 
+    @if($errors->any())
+        <div class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
+            No se pudieron guardar los cambios. Revisa los campos marcados e intenta nuevamente.
+        </div>
+    @endif
+
     <div class="grid gap-5 md:grid-cols-2">
         <div>
             <label for="name" class="mb-2 block text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Nombre</label>
@@ -80,6 +86,12 @@
                             <input type="time" name="availabilities[{{ $dayIndex }}][endTime]" value="{{ $endTime }}" class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none focus:border-indigo-500">
                         </div>
                     </div>
+                    @error("availabilities.$dayIndex.startTime")
+                        <p class="mt-2 text-sm font-medium text-rose-500">{{ $message }}</p>
+                    @enderror
+                    @error("availabilities.$dayIndex.endTime")
+                        <p class="mt-2 text-sm font-medium text-rose-500">{{ $message }}</p>
+                    @enderror
                 </div>
             @endforeach
         </div>

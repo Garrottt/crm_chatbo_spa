@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpsertSpecialistRequest extends FormRequest
 {
@@ -33,7 +34,31 @@ class UpsertSpecialistRequest extends FormRequest
             'availabilities' => ['nullable', 'array'],
             'availabilities.*.enabled' => ['nullable', 'boolean'],
             'availabilities.*.startTime' => ['nullable', 'date_format:H:i'],
-            'availabilities.*.endTime' => ['nullable', 'date_format:H:i', 'after:availabilities.*.startTime'],
+            'availabilities.*.endTime' => ['nullable', 'date_format:H:i'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            foreach ((array) $this->input('availabilities', []) as $day => $availability) {
+                $enabled = filter_var($availability['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $startTime = $availability['startTime'] ?? null;
+                $endTime = $availability['endTime'] ?? null;
+
+                if (!$enabled) {
+                    continue;
+                }
+
+                if (!$startTime || !$endTime) {
+                    $validator->errors()->add("availabilities.$day.endTime", 'Debes indicar hora de inicio y termino para los dias activos.');
+                    continue;
+                }
+
+                if ($endTime <= $startTime) {
+                    $validator->errors()->add("availabilities.$day.endTime", 'La hora de termino debe ser posterior a la hora de inicio.');
+                }
+            }
+        });
     }
 }
