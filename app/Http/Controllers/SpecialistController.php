@@ -160,7 +160,7 @@ class SpecialistController extends Controller
                     'password' => !empty($data['password'])
                         ? Hash::make($data['password'])
                         : $specialist->user->password,
-                    'role' => 'SPECIALIST',
+                    'role' => $specialist->user->isAdmin() ? 'ADMIN' : 'SPECIALIST',
                 ]);
             } elseif (!empty($data['email'])) {
                 $user = User::create([
