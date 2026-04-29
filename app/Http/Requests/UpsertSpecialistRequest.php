@@ -38,6 +38,25 @@ class UpsertSpecialistRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $availabilities = [];
+
+        foreach ((array) $this->input('availabilities', []) as $day => $availability) {
+            $enabled = filter_var($availability['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            $availabilities[$day] = [
+                'enabled' => $enabled ? '1' : null,
+                'startTime' => $enabled ? $this->normalizeTime($availability['startTime'] ?? null) : null,
+                'endTime' => $enabled ? $this->normalizeTime($availability['endTime'] ?? null) : null,
+            ];
+        }
+
+        $this->merge([
+            'availabilities' => $availabilities,
+        ]);
+    }
+
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
@@ -60,5 +79,20 @@ class UpsertSpecialistRequest extends FormRequest
                 }
             }
         });
+    }
+
+    private function normalizeTime(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('/^\d{2}:\d{2}/', $value, $matches)) {
+            return $matches[0];
+        }
+
+        return $value;
     }
 }
