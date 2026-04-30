@@ -4,11 +4,18 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SpecialistPortalController;
 use App\Http\Controllers\SpecialistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return auth()->check() ? redirect('/agenda') : redirect('/login');
+    if (!auth()->check()) {
+        return redirect('/login');
+    }
+
+    return auth()->user()?->isSpecialist()
+        ? redirect('/mi-panel')
+        : redirect('/agenda');
 });
 
 Route::middleware('guest')->group(function () {
@@ -17,6 +24,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/mi-panel', [SpecialistPortalController::class, 'index'])->name('specialist.portal');
+
     Route::get('/chat', function () {
         abort_unless(auth()->user()?->isAdmin(), 403);
         return redirect()->route('conversations.index');
@@ -24,7 +33,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/agenda', function () {
         return view('agenda');
-    });
+    })->name('agenda');
 
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 

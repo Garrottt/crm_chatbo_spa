@@ -279,10 +279,12 @@
             <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div class="max-w-2xl">
-                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">Spa Ikigai</p>
-                        <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">Agenda de Reservas</h1>
+                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">{{ auth()->user()?->isAdmin() ? 'Spa Ikigai' : 'Portal especialista' }}</p>
+                        <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">{{ auth()->user()?->isAdmin() ? 'Agenda de Reservas' : 'Mi Agenda de Atencion' }}</h1>
                         <p class="mt-3 text-sm text-slate-300 md:text-base">
-                            Organiza citas, visualiza la carga semanal y gestiona cambios sin salir del calendario.
+                            {{ auth()->user()?->isAdmin()
+                                ? 'Organiza citas, visualiza la carga semanal y gestiona cambios sin salir del calendario.'
+                                : 'Revise sus citas asignadas, su carga semanal y el detalle de cada atencion en un solo calendario.' }}
                         </p>
                     </div>
 
@@ -378,7 +380,7 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-400">Detalle de reserva</p>
-                            <h2 id="detail-title" class="mt-3 text-2xl font-black text-slate-900">Resumen del dia</h2>
+                            <h2 id="detail-title" class="mt-3 text-2xl font-black text-slate-900">{{ auth()->user()?->isAdmin() ? 'Resumen del dia' : 'Resumen de mi agenda' }}</h2>
                         </div>
                         <div class="rounded-2xl bg-slate-900 px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white">
                             Agenda
@@ -419,7 +421,9 @@
 
                         <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                             <p id="detail-summary" class="text-sm leading-6 text-slate-600">
-                                Este panel resume la operacion del dia. Selecciona una reserva para ver su detalle completo y gestionar cambios.
+                                {{ auth()->user()?->isAdmin()
+                                    ? 'Este panel resume la operacion del dia. Selecciona una reserva para ver su detalle completo y gestionar cambios.'
+                                    : 'Este panel resume tu agenda. Selecciona una reserva para revisar su detalle completo.' }}
                             </p>
                         </div>
 
@@ -530,6 +534,7 @@
             var refreshStatus = document.getElementById('agenda-refresh-status');
             var activeEvent = null;
             var isAdmin = @json(auth()->user()?->isAdmin());
+            var isSpecialist = @json(auth()->user()?->isSpecialist());
             var autoRefreshTimer = null;
             var eventSnapshot = new Map();
             var lastRefreshDiff = { created: 0, updated: 0 };
@@ -888,18 +893,20 @@
 
                 activeEvent = null;
                 clearFeedback();
-                detailTitle.textContent = 'Resumen del dia';
+                detailTitle.textContent = isAdmin ? 'Resumen del dia' : 'Resumen de mi agenda';
                 detailStatus.className = 'status-badge status-default';
                 detailStatus.innerHTML = '<span class="status-dot"></span>Vista general';
                 detailClientLabel.textContent = 'Proxima cita';
                 detailClient.textContent = nextText;
-                detailServiceLabel.textContent = 'Especialistas en turno';
-                detailService.textContent = specialistsText;
+                detailServiceLabel.textContent = isAdmin ? 'Especialistas en turno' : 'Cobertura';
+                detailService.textContent = isAdmin ? specialistsText : 'Solo estas viendo reservas donde apareces asignado.';
                 detailStartLabel.textContent = 'Nivel de ocupacion';
                 detailStart.textContent = summary.occupancy + '%';
                 detailEndLabel.textContent = 'Bloques de hoy';
                 detailEnd.textContent = summary.totalBlocks + (summary.totalBlocks === 1 ? ' reserva' : ' reservas');
-                detailSummary.textContent = 'Resumen rapido del dia actual. Selecciona una reserva para ver el cliente, servicio, especialista y acciones disponibles.';
+                detailSummary.textContent = isAdmin
+                    ? 'Resumen rapido del dia actual. Selecciona una reserva para ver el cliente, servicio, especialista y acciones disponibles.'
+                    : 'Resumen rapido de tu agenda actual. Selecciona una reserva para ver el cliente, servicio y horario asignado.';
                 if (isAdmin && specialistSelect) {
                     specialistSelect.value = '';
                 }

@@ -10,6 +10,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $period = $request->get('period', 'este_mes');
         $now = Carbon::now();
 

@@ -13,7 +13,7 @@ class LoginController extends Controller
     public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect('/agenda');
+            return redirect($this->homePath());
         }
 
         return view('auth.login');
@@ -29,7 +29,11 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/agenda');
+            if (Auth::user()?->isSpecialist()) {
+                return redirect($this->homePath());
+            }
+
+            return redirect()->intended($this->homePath());
         }
 
         return back()
@@ -47,5 +51,16 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    private function homePath(): string
+    {
+        $user = Auth::user();
+
+        if ($user?->isSpecialist()) {
+            return '/mi-panel';
+        }
+
+        return '/agenda';
     }
 }

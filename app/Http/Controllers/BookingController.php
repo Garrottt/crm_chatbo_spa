@@ -73,6 +73,8 @@ class BookingController extends Controller
 
     public function specialistsOptions(): JsonResponse
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         if (!Schema::hasTable('Specialist')) {
             return response()->json([]);
         }
