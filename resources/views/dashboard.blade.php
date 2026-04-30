@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     display: true,
+                    onClick: function() {},
                     labels: {
                         color: '#a1a1aa',
                         usePointStyle: true,
