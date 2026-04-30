@@ -135,6 +135,13 @@ class BookingController extends Controller
         $durationMinutes = max(1, (int) ($booking->service->durationMinutes ?? 60));
         $newStart = Carbon::createFromFormat('Y-m-d\TH:i', $data['scheduledAt'], self::SPA_TIMEZONE)->utc();
         $newEnd = (clone $newStart)->addMinutes($durationMinutes);
+        $scheduleValidationMessage = $this->validateBookingInsideBusinessHours($newStart, $newEnd);
+
+        if ($scheduleValidationMessage) {
+            return response()->json([
+                'message' => $scheduleValidationMessage,
+            ], 422);
+        }
 
         $booking->update([
             'scheduledAt' => $newStart,
@@ -234,6 +241,30 @@ class BookingController extends Controller
         }
 
         return $value->copy()->timezone(self::SPA_TIMEZONE)->toIso8601String();
+    }
+
+    private function validateBookingInsideBusinessHours(Carbon $startUtc, Carbon $endUtc): ?string
+    {
+        $start = $startUtc->copy()->timezone(self::SPA_TIMEZONE);
+        $end = $endUtc->copy()->timezone(self::SPA_TIMEZONE);
+        $dayOfWeek = $start->dayOfWeek;
+
+        if ($dayOfWeek === Carbon::SUNDAY) {
+            return 'No es posible reagendar reservas para el domingo porque el spa no atiende ese dia.';
+        }
+
+        $closingHour = $dayOfWeek === Carbon::SATURDAY ? 18 : 19;
+        $closingTime = $start->copy()->setTime($closingHour, 0, 0);
+
+        if ($end->greaterThan($closingTime)) {
+            $closingLabel = $dayOfWeek === Carbon::SATURDAY
+                ? '18:00 los sabados'
+                : '19:00 de lunes a viernes';
+
+            return "No es posible reagendar esta reserva porque superaria el horario de atencion del spa. El horario maximo permitido es hasta las {$closingLabel}.";
+        }
+
+        return null;
     }
 
     private function sendWhatsAppNotification(Booking $booking, string $message): void
