@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="min-h-full bg-slate-100 px-6 py-6 md:px-8">
+    <div class="h-full overflow-y-auto bg-slate-100 px-6 py-6 md:px-8">
         <div class="mx-auto max-w-7xl space-y-6">
             <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
