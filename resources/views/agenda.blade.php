@@ -465,9 +465,12 @@
                                         <input id="reschedule-start" type="datetime-local" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-indigo-500">
                                     </label>
                                     <label class="block">
-                                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Nuevo fin</span>
-                                        <input id="reschedule-end" type="datetime-local" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-indigo-500">
+                                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Fin calculado automaticamente</span>
+                                        <input id="reschedule-end" type="datetime-local" readonly class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none">
                                     </label>
+                                    <p id="reschedule-duration-hint" class="text-xs font-medium text-slate-500">
+                                        El horario final se ajusta segun la duracion real del servicio.
+                                    </p>
                                 </div>
                                 <div class="mt-3 flex gap-3">
                                     <button id="submit-reschedule" type="button" class="agenda-action flex-1 bg-indigo-600 text-white hover:bg-indigo-700">Confirmar reagendado</button>
@@ -523,6 +526,7 @@
             var submitReschedule = document.getElementById('submit-reschedule');
             var closeCancelPanel = document.getElementById('close-cancel-panel');
             var closeReschedulePanel = document.getElementById('close-reschedule-panel');
+            var rescheduleDurationHint = document.getElementById('reschedule-duration-hint');
             var refreshStatus = document.getElementById('agenda-refresh-status');
             var activeEvent = null;
             var isAdmin = @json(auth()->user()?->isAdmin());
@@ -634,7 +638,49 @@
                 if (!isAdmin) return;
                 hideActionPanels();
                 reschedulePanel.classList.add('is-visible');
+                syncRescheduleEnd();
                 rescheduleStart.focus();
+            }
+
+            function getActiveServiceDurationMinutes() {
+                if (!activeEvent) {
+                    return 60;
+                }
+
+                var duration = Number(activeEvent.extendedProps.serviceDurationMinutes || 0);
+                return duration > 0 ? duration : 60;
+            }
+
+            function syncRescheduleHint() {
+                if (!rescheduleDurationHint) {
+                    return;
+                }
+
+                var duration = getActiveServiceDurationMinutes();
+                rescheduleDurationHint.textContent = 'Este servicio dura ' + duration + ' minutos. La hora de termino se calcula automaticamente.';
+            }
+
+            function syncRescheduleEnd() {
+                if (!rescheduleStart || !rescheduleEnd) {
+                    return;
+                }
+
+                if (!rescheduleStart.value) {
+                    rescheduleEnd.value = '';
+                    syncRescheduleHint();
+                    return;
+                }
+
+                var startDate = new Date(rescheduleStart.value);
+                if (Number.isNaN(startDate.getTime())) {
+                    rescheduleEnd.value = '';
+                    syncRescheduleHint();
+                    return;
+                }
+
+                var endDate = new Date(startDate.getTime() + getActiveServiceDurationMinutes() * 60000);
+                rescheduleEnd.value = toInputValue(endDate);
+                syncRescheduleHint();
             }
 
             function showFeedback(message, tone) {
@@ -870,7 +916,7 @@
                     if (!shouldPreserveInteraction) {
                         specialistSelect.value = event.extendedProps.specialistId || '';
                         rescheduleStart.value = toInputValue(event.start);
-                        rescheduleEnd.value = toInputValue(endDate);
+                        syncRescheduleEnd();
                         cancelReason.value = '';
                         hideActionPanels();
                     } else if (!hasActionPanelOpen()) {
@@ -892,6 +938,7 @@
                 activeEvent.setExtendedProp('client', booking.client);
                 activeEvent.setExtendedProp('clientId', booking.clientId);
                 activeEvent.setExtendedProp('service', booking.service);
+                activeEvent.setExtendedProp('serviceDurationMinutes', booking.serviceDurationMinutes || activeEvent.extendedProps.serviceDurationMinutes || null);
                 activeEvent.setExtendedProp('specialistId', booking.specialistId || '');
                 activeEvent.setExtendedProp('specialist', booking.specialist);
                 updateDetail(activeEvent);
@@ -1009,15 +1056,18 @@
                         return;
                     }
 
-                    if (!rescheduleStart.value || !rescheduleEnd.value) {
+                    if (!rescheduleStart.value) {
                         showFeedback('Completa la nueva fecha y hora antes de reagendar.', 'error');
                         return;
                     }
 
                     patchBooking('/api/bookings/' + activeEvent.id + '/reschedule', {
-                        scheduledAt: rescheduleStart.value,
-                        endAt: rescheduleEnd.value
+                        scheduledAt: rescheduleStart.value
                     }, 'Reserva reagendada.');
+                });
+
+                rescheduleStart.addEventListener('input', function() {
+                    syncRescheduleEnd();
                 });
 
                 closeCancelPanel.addEventListener('click', function() {

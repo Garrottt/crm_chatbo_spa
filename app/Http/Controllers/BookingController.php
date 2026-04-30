@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Specialist;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 
@@ -57,6 +58,7 @@ class BookingController extends Controller
                     'client' => $booking->client->name ?? 'Sin nombre',
                     'clientId' => $booking->clientId,
                     'service' => $booking->service->name ?? 'Sin servicio',
+                    'serviceDurationMinutes' => $booking->service->durationMinutes ?? null,
                     'specialistId' => $booking->specialistId,
                     'specialist' => $booking->specialist?->name ?? 'Sin asignar',
                     'status' => $booking->status,
@@ -125,14 +127,16 @@ class BookingController extends Controller
 
         $data = $request->validate([
             'scheduledAt' => ['required', 'date'],
-            'endAt' => ['required', 'date', 'after:scheduledAt'],
         ]);
 
         $newStatus = $booking->status === 'CANCELLED' ? 'PENDING' : $booking->status;
+        $durationMinutes = max(1, (int) ($booking->service->durationMinutes ?? 60));
+        $newStart = Carbon::parse($data['scheduledAt']);
+        $newEnd = (clone $newStart)->addMinutes($durationMinutes);
 
         $booking->update([
-            'scheduledAt' => $data['scheduledAt'],
-            'endAt' => $data['endAt'],
+            'scheduledAt' => $newStart,
+            'endAt' => $newEnd,
             'status' => $newStatus,
         ]);
 
@@ -184,6 +188,7 @@ class BookingController extends Controller
             'client' => $booking->client->name ?? 'Sin nombre',
             'clientId' => $booking->clientId,
             'service' => $booking->service->name ?? 'Sin servicio',
+            'serviceDurationMinutes' => $booking->service->durationMinutes ?? null,
             'specialistId' => $booking->specialistId,
             'specialist' => $booking->specialist?->name ?? 'Sin asignar',
             'color' => $this->statusColor($booking->status),
