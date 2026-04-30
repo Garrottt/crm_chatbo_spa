@@ -96,9 +96,12 @@ class BookingController extends Controller
             'status' => 'CONFIRMED',
         ]);
 
+        $booking->load(['client', 'service', 'specialist']);
+        $this->dispatchNotificationAfterResponse($booking->id, 'confirmation');
+
         return response()->json([
             'message' => 'Reserva confirmada correctamente.',
-            'booking' => $this->serializeBooking($booking->fresh(['client', 'service', 'specialist'])),
+            'booking' => $this->serializeBooking($booking),
         ]);
     }
 
@@ -177,6 +180,7 @@ class BookingController extends Controller
         ]);
 
         $booking->load(['client', 'service', 'specialist']);
+        $this->dispatchNotificationAfterResponse($booking->id, 'specialist_assignment');
 
         return response()->json([
             'message' => $booking->specialist
@@ -217,6 +221,34 @@ class BookingController extends Controller
         $this->sendWhatsAppNotification($booking, $message);
     }
 
+    private function sendConfirmationNotification(Booking $booking): void
+    {
+        $message = sprintf(
+            'Hola %s, tu reserva para %s ha sido confirmada. Fecha: %s. Hora de termino: %s. Especialista asignado: %s.',
+            $booking->client->name ?? 'cliente',
+            $booking->service->name ?? 'tu servicio',
+            optional($booking->scheduledAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('d \\d\\e F \\a \\l\\a\\s H:i'),
+            optional($booking->endAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('H:i'),
+            $booking->specialist?->name ?? 'Sin especialista asignado'
+        );
+
+        $this->sendWhatsAppNotification($booking, $message);
+    }
+
+    private function sendSpecialistAssignmentNotification(Booking $booking): void
+    {
+        $message = sprintf(
+            'Hola %s, tu reserva para %s fue actualizada. Fecha: %s. Hora de termino: %s. Especialista asignado: %s.',
+            $booking->client->name ?? 'cliente',
+            $booking->service->name ?? 'tu servicio',
+            optional($booking->scheduledAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('d \\d\\e F \\a \\l\\a\\s H:i'),
+            optional($booking->endAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('H:i'),
+            $booking->specialist?->name ?? 'Sin especialista asignado'
+        );
+
+        $this->sendWhatsAppNotification($booking, $message);
+    }
+
     private function sendCancellationNotification(Booking $booking, ?string $reason = null): void
     {
         $message = sprintf(
@@ -229,7 +261,7 @@ class BookingController extends Controller
             $message .= ' Motivo: ' . trim($reason) . '.';
         }
 
-        $message .= ' Si necesitas ayuda para reagendar, escribenos y con gusto te apoyamos.';
+        $message .= ' El equipo del spa se pondra en contacto contigo para acordar la devolucion de tu abono. Si necesitas ayuda para reagendar, escribenos y con gusto te apoyamos.';
 
         $this->sendWhatsAppNotification($booking, $message);
     }
@@ -302,6 +334,16 @@ class BookingController extends Controller
 
             if ($type === 'cancellation') {
                 $this->sendCancellationNotification($booking, $reason);
+                return;
+            }
+
+            if ($type === 'confirmation') {
+                $this->sendConfirmationNotification($booking);
+                return;
+            }
+
+            if ($type === 'specialist_assignment') {
+                $this->sendSpecialistAssignmentNotification($booking);
                 return;
             }
 
