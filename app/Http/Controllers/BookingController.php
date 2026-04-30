@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
+    private const SPA_TIMEZONE = 'America/Santiago';
+
     public function getCalendarEvents(Request $request): JsonResponse
     {
         $query = Booking::with(['service', 'client', 'specialist']);
@@ -51,8 +53,8 @@ class BookingController extends Controller
             return [
                 'id' => $booking->id,
                 'title' => ($booking->client->name ?? 'Sin nombre') . ' - ' . ($booking->service->name ?? 'Servicio'),
-                'start' => optional($booking->scheduledAt)->toIso8601String() ?? $booking->scheduledAt,
-                'end' => optional($booking->endAt)->toIso8601String() ?? $booking->endAt,
+                'start' => $this->toSpaIsoString($booking->scheduledAt),
+                'end' => $this->toSpaIsoString($booking->endAt),
                 'color' => $this->statusColor($booking->status),
                 'extendedProps' => [
                     'client' => $booking->client->name ?? 'Sin nombre',
@@ -131,7 +133,7 @@ class BookingController extends Controller
 
         $newStatus = $booking->status === 'CANCELLED' ? 'PENDING' : $booking->status;
         $durationMinutes = max(1, (int) ($booking->service->durationMinutes ?? 60));
-        $newStart = Carbon::parse($data['scheduledAt']);
+        $newStart = Carbon::createFromFormat('Y-m-d\TH:i', $data['scheduledAt'], self::SPA_TIMEZONE)->utc();
         $newEnd = (clone $newStart)->addMinutes($durationMinutes);
 
         $booking->update([
@@ -182,8 +184,8 @@ class BookingController extends Controller
         return [
             'id' => $booking->id,
             'title' => ($booking->client->name ?? 'Sin nombre') . ' - ' . ($booking->service->name ?? 'Servicio'),
-            'start' => optional($booking->scheduledAt)->toIso8601String() ?? $booking->scheduledAt,
-            'end' => optional($booking->endAt)->toIso8601String() ?? $booking->endAt,
+            'start' => $this->toSpaIsoString($booking->scheduledAt),
+            'end' => $this->toSpaIsoString($booking->endAt),
             'status' => $booking->status,
             'client' => $booking->client->name ?? 'Sin nombre',
             'clientId' => $booking->clientId,
@@ -198,11 +200,11 @@ class BookingController extends Controller
     private function sendRescheduleNotification(Booking $booking): void
     {
         $message = sprintf(
-            'Hola %s, tu reserva para %s ha sido reagendada. Nueva fecha: %s. Hora de tÃ©rmino: %s.',
+            'Hola %s, tu reserva para %s ha sido reagendada. Nueva fecha: %s. Hora de termino: %s.',
             $booking->client->name ?? 'cliente',
             $booking->service->name ?? 'tu servicio',
-            optional($booking->scheduledAt)->timezone(config('app.timezone'))->translatedFormat('d \\d\\e F \\a \\l\\a\\s H:i'),
-            optional($booking->endAt)->timezone(config('app.timezone'))->translatedFormat('H:i')
+            optional($booking->scheduledAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('d \\d\\e F \\a \\l\\a\\s H:i'),
+            optional($booking->endAt)->copy()->timezone(self::SPA_TIMEZONE)->locale('es')->translatedFormat('H:i')
         );
 
         $this->sendWhatsAppNotification($booking, $message);
@@ -220,9 +222,18 @@ class BookingController extends Controller
             $message .= ' Motivo: ' . trim($reason) . '.';
         }
 
-        $message .= ' Si necesitas ayuda para reagendar, escrÃ­benos y con gusto te apoyamos.';
+        $message .= ' Si necesitas ayuda para reagendar, escribenos y con gusto te apoyamos.';
 
         $this->sendWhatsAppNotification($booking, $message);
+    }
+
+    private function toSpaIsoString($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        return $value->copy()->timezone(self::SPA_TIMEZONE)->toIso8601String();
     }
 
     private function sendWhatsAppNotification(Booking $booking, string $message): void
