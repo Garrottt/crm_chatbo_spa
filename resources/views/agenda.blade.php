@@ -576,12 +576,30 @@
             function setButtonsDisabled(disabled) {
                 if (!isAdmin) return;
 
-                actionConfirm.disabled = disabled;
-                actionCancel.disabled = disabled;
-                actionReschedule.disabled = disabled;
-                actionAssignSpecialist.disabled = disabled;
+                if (disabled) {
+                    actionConfirm.disabled = true;
+                    actionCancel.disabled = true;
+                    actionReschedule.disabled = true;
+                    actionAssignSpecialist.disabled = true;
+                    specialistSelect.disabled = true;
+                } else {
+                    syncAdminActionAvailability();
+                }
+
                 submitCancel.disabled = disabled;
                 submitReschedule.disabled = disabled;
+            }
+
+            function syncAdminActionAvailability() {
+                if (!isAdmin) return;
+
+                var isCancelled = !!(activeEvent && String(activeEvent.extendedProps.status || '').toUpperCase() === 'CANCELLED');
+
+                actionConfirm.disabled = isCancelled;
+                actionCancel.disabled = isCancelled;
+                actionReschedule.disabled = false;
+                actionAssignSpecialist.disabled = isCancelled;
+                specialistSelect.disabled = isCancelled;
             }
 
             async function loadSpecialistOptions() {
@@ -922,6 +940,8 @@
                     } else if (!hasActionPanelOpen()) {
                         specialistSelect.value = event.extendedProps.specialistId || '';
                     }
+
+                    syncAdminActionAvailability();
                 }
             }
 

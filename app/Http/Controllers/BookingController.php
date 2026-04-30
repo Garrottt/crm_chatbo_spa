@@ -165,6 +165,12 @@ class BookingController extends Controller
     {
         $this->ensureAdminCanManage($booking);
 
+        if ($booking->status === 'CANCELLED') {
+            return response()->json([
+                'message' => 'No es posible cambiar el especialista de una reserva cancelada.',
+            ], 422);
+        }
+
         $rules = [
             'specialistId' => ['nullable', 'string'],
         ];
