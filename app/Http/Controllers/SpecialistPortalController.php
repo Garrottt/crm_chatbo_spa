@@ -9,6 +9,8 @@ use Illuminate\View\View;
 
 class SpecialistPortalController extends Controller
 {
+    private const SPA_TIMEZONE = 'America/Santiago';
+
     private const DAYS = [
         1 => 'Lunes',
         2 => 'Martes',
@@ -28,10 +30,11 @@ class SpecialistPortalController extends Controller
             ->where('userId', $user->id)
             ->firstOrFail();
 
-        $now = Carbon::now();
-        $todayStart = $now->copy()->startOfDay();
-        $todayEnd = $now->copy()->endOfDay();
-        $weekEnd = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $now = Carbon::now(self::SPA_TIMEZONE);
+        $todayStart = $now->copy()->startOfDay()->utc();
+        $todayEnd = $now->copy()->endOfDay()->utc();
+        $weekEnd = $now->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay()->utc();
+        $nowUtc = $now->copy()->utc();
 
         $todayBookings = Booking::with(['client', 'service'])
             ->where('specialistId', $specialist->id)
@@ -41,7 +44,7 @@ class SpecialistPortalController extends Controller
 
         $upcomingBookings = Booking::with(['client', 'service'])
             ->where('specialistId', $specialist->id)
-            ->where('scheduledAt', '>=', $now)
+            ->where('scheduledAt', '>=', $nowUtc)
             ->where('status', '!=', 'CANCELLED')
             ->orderBy('scheduledAt')
             ->limit(8)

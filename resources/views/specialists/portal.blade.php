@@ -81,11 +81,11 @@
                                 <div class="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2">
                                     <div>
                                         <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Inicio</p>
-                                        <p class="mt-1 font-semibold text-slate-900">{{ optional($booking->scheduledAt)->locale('es')->translatedFormat('l d \\d\\e F, H:i') }}</p>
+                                        <p class="mt-1 font-semibold text-slate-900">{{ optional($booking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('l d \\d\\e F, H:i') }}</p>
                                     </div>
                                     <div>
                                         <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Termino</p>
-                                        <p class="mt-1 font-semibold text-slate-900">{{ optional($booking->endAt)->locale('es')->translatedFormat('H:i') }}</p>
+                                        <p class="mt-1 font-semibold text-slate-900">{{ optional($booking->endAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -104,8 +104,8 @@
                             <h2 class="mt-3 text-2xl font-black text-slate-900">{{ $nextBooking->client->name ?? 'Cliente sin nombre' }}</h2>
                             <p class="mt-2 text-sm font-semibold text-slate-500">{{ $nextBooking->service->name ?? 'Servicio sin nombre' }}</p>
                             <div class="mt-4 rounded-2xl bg-slate-900 px-4 py-4 text-white">
-                                <p class="text-sm font-semibold">{{ optional($nextBooking->scheduledAt)->locale('es')->translatedFormat('l d \\d\\e F') }}</p>
-                                <p class="mt-1 text-2xl font-black">{{ optional($nextBooking->scheduledAt)->locale('es')->translatedFormat('H:i') }} - {{ optional($nextBooking->endAt)->locale('es')->translatedFormat('H:i') }}</p>
+                                <p class="text-sm font-semibold">{{ optional($nextBooking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('l d \\d\\e F') }}</p>
+                                <p class="mt-1 text-2xl font-black">{{ optional($nextBooking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }} - {{ optional($nextBooking->endAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}</p>
                             </div>
                         @else
                             <div class="mt-4 rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm font-semibold text-slate-500">
@@ -119,7 +119,7 @@
                         <div class="mt-4 space-y-3">
                             @forelse($todayBookings as $booking)
                                 <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                    <p class="font-bold text-slate-900">{{ optional($booking->scheduledAt)->locale('es')->translatedFormat('H:i') }} - {{ optional($booking->endAt)->locale('es')->translatedFormat('H:i') }}</p>
+                                    <p class="font-bold text-slate-900">{{ optional($booking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }} - {{ optional($booking->endAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}</p>
                                     <p class="mt-1 text-sm font-medium text-slate-600">{{ $booking->client->name ?? 'Cliente sin nombre' }} · {{ $booking->service->name ?? 'Servicio' }}</p>
                                 </div>
                             @empty
