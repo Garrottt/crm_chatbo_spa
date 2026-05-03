@@ -26,7 +26,7 @@ class SpecialistPortalController extends Controller
         $user = auth()->user();
         abort_unless($user && $user->isSpecialist(), 403);
 
-        $specialist = Specialist::with(['services', 'availabilities'])
+        $specialist = Specialist::with(['user', 'services', 'availabilities'])
             ->where('userId', $user->id)
             ->firstOrFail();
 
@@ -50,17 +50,42 @@ class SpecialistPortalController extends Controller
             ->limit(8)
             ->get();
 
-        $weekBookingsCount = Booking::query()
+        $weekBookings = Booking::with(['client', 'service'])
             ->where('specialistId', $specialist->id)
             ->where('status', '!=', 'CANCELLED')
             ->whereBetween('scheduledAt', [$todayStart, $weekEnd])
-            ->count();
+            ->orderBy('scheduledAt')
+            ->get();
+
+        $occupiedMinutesToday = $todayBookings
+            ->where('status', '!=', 'CANCELLED')
+            ->reduce(function ($total, Booking $booking) {
+                if (!$booking->scheduledAt || !$booking->endAt) {
+                    return $total;
+                }
+
+                return $total + $booking->scheduledAt->diffInMinutes($booking->endAt);
+            }, 0);
 
         $stats = [
             'services' => $specialist->services->count(),
             'today' => $todayBookings->count(),
             'pending' => $todayBookings->where('status', 'PENDING')->count(),
-            'week' => $weekBookingsCount,
+            'week' => $weekBookings->count(),
+        ];
+
+        $todaySummary = [
+            'appointments' => $todayBookings->count(),
+            'occupiedHours' => $this->formatOccupiedHours($occupiedMinutesToday),
+            'statusLabel' => $todayBookings->where('status', 'PENDING')->count() > 0 ? 'Con pendientes' : 'Sin pendientes',
+            'statusHint' => $todayBookings->where('status', 'PENDING')->count() > 0 ? 'Revise las confirmaciones' : 'Todo al dia',
+        ];
+
+        $todaySummary = [
+            'appointments' => $todayBookings->count(),
+            'occupiedHours' => $this->formatOccupiedHours($occupiedMinutesToday),
+            'statusLabel' => $todayBookings->where('status', 'PENDING')->count() > 0 ? 'Con pendientes' : 'Sin pendientes',
+            'statusHint' => $todayBookings->where('status', 'PENDING')->count() > 0 ? 'Revise las confirmaciones' : 'Todo al dia',
         ];
 
         $availability = collect(self::DAYS)->map(function ($label, $day) use ($specialist) {
@@ -78,10 +103,27 @@ class SpecialistPortalController extends Controller
         return view('specialists.portal', [
             'specialist' => $specialist,
             'stats' => $stats,
+            'todaySummary' => $todaySummary,
             'todayBookings' => $todayBookings,
             'upcomingBookings' => $upcomingBookings,
             'availability' => $availability,
             'nextBooking' => $upcomingBookings->first(),
         ]);
+    }
+
+    private function formatOccupiedHours(int $minutes): string
+    {
+        if ($minutes <= 0) {
+            return '0 h';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+
+        if ($remainingMinutes === 0) {
+            return $hours . ' h';
+        }
+
+        return sprintf('%d h %02d', $hours, $remainingMinutes);
     }
 }
