@@ -132,8 +132,8 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 0.18rem;
-            padding: 0.45rem 0.5rem;
+            gap: 0.14rem;
+            padding: 0.38rem 0.45rem;
             border-radius: 0.9rem;
             overflow: hidden;
         }
@@ -350,12 +350,15 @@
 
         .detail-metric {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 0.35rem;
             padding: 0.75rem 0.85rem;
             border-radius: 0.85rem;
             background: rgba(255, 255, 255, 0.78);
             border: 1px solid #e2e8f0;
+            min-height: 72px;
         }
 
         .detail-metric-label {
@@ -364,13 +367,16 @@
             letter-spacing: 0.14em;
             text-transform: uppercase;
             color: #94a3b8;
+            line-height: 1.2;
         }
 
         .detail-metric-value {
-            text-align: right;
-            font-size: 0.94rem;
-            font-weight: 700;
+            text-align: left;
+            font-size: 0.98rem;
+            font-weight: 800;
             color: #0f172a;
+            line-height: 1.2;
+            word-break: break-word;
         }
 
         .specialist-quick-action {
@@ -512,6 +518,24 @@
             background: transparent !important;
             border-color: transparent !important;
         }
+
+        .fc .fc-timegrid-event-harness {
+            min-width: 0;
+        }
+
+        .fc .fc-timegrid-event-harness-inset .fc-timegrid-event {
+            margin-left: 0.25rem;
+            margin-right: 0.25rem;
+        }
+
+        .fc .fc-timegrid-event-harness-abs {
+            left: 0;
+            right: 0;
+        }
+
+        .fc .fc-timegrid-event-harness-abs .fc-timegrid-event {
+            max-width: 100%;
+        }
     </style>
     @endpush
 
@@ -644,28 +668,28 @@
                     <div class="mt-4 space-y-2">
                         @if(auth()->user()?->isAdmin())
                             <!-- Admin: summary layout -->
-                            <div class="space-y-2">
-                                <div class="flex gap-2">
-                                    <div class="detail-metric flex-1">
-                                        <span id="detail-client-label" class="detail-metric-label">Proxima cita</span>
-                                        <span id="detail-client" class="detail-metric-value">Sin citas proximas</span>
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <div class="detail-metric">
+                                            <span id="detail-client-label" class="detail-metric-label">Proxima cita</span>
+                                            <span id="detail-client" class="detail-metric-value">Sin citas proximas</span>
+                                        </div>
+                                        <div class="detail-metric">
+                                            <span id="detail-service-label" class="detail-metric-label">Cobertura</span>
+                                            <span id="detail-service" class="detail-metric-value">Sin agenda activa</span>
+                                        </div>
                                     </div>
-                                    <div class="detail-metric flex-1">
-                                        <span id="detail-service-label" class="detail-metric-label">Cobertura</span>
-                                        <span id="detail-service" class="detail-metric-value">Sin agenda activa</span>
+                                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <div class="detail-metric">
+                                            <span id="detail-start-label" class="detail-metric-label">Nivel de ocupacion</span>
+                                            <span id="detail-start" class="detail-metric-value">0%</span>
+                                        </div>
+                                        <div class="detail-metric">
+                                            <span id="detail-end-label" class="detail-metric-label">Bloques de hoy</span>
+                                            <span id="detail-end" class="detail-metric-value">0 reservas</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <div class="detail-metric flex-1">
-                                        <span id="detail-start-label" class="detail-metric-label">Nivel de ocupacion</span>
-                                        <span id="detail-start" class="detail-metric-value">0%</span>
-                                    </div>
-                                    <div class="detail-metric flex-1">
-                                        <span id="detail-end-label" class="detail-metric-label">Bloques de hoy</span>
-                                        <span id="detail-end" class="detail-metric-value">0 reservas</span>
-                                    </div>
-                                </div>
-                            </div>
                         @else
                             <!-- Specialist: summary cards layout -->
                             <div class="space-y-2">
@@ -1294,13 +1318,13 @@
                 firstDay: 1,
 
                 // Evita que las reservas simultáneas se monten una encima de otra
-                eventOverlap: true,
+                eventOverlap: false,
                 slotEventOverlap: false,
-                eventMaxStack: 2,
-                dayMaxEvents: true,
-                dayMaxEventRows: 2,
-                eventMinHeight: 58,
-                eventShortHeight: 58,
+                eventMaxStack: 4,
+                dayMaxEvents: false,
+                dayMaxEventRows: false,
+                eventMinHeight: 54,
+                eventShortHeight: 54,
 
                 events: '/api/calendar-events',
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
