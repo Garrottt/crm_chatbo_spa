@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CRM Spa Ikigai</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @livewireStyles
     @stack('styles')
@@ -76,6 +76,25 @@
                     </svg>
                 </a>
             @endif
+            @if(auth()->user()?->isAdmin())
+                <a href="/offers"
+                   class="p-3 mb-4 rounded-xl transition-all duration-300 {{ request()->is('offers*') ? 'bg-indigo-700 shadow-lg' : 'text-indigo-300 hover:bg-indigo-700 hover:text-white' }}"
+                   title="Ver Ofertas">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3-1.343-3-3h6c0 1.657-1.343 3-3 3zm0 0l7 4v5a2 2 0 01-2 2H7a2 2 0 01-2-2v-5l7-4z" />
+                    </svg>
+                </a>
+            @endif
+
+            @if(auth()->user()?->isAdmin())
+                <a href="/campaigns"
+                   class="p-3 mb-4 rounded-xl transition-all duration-300 {{ request()->is('campaigns*') ? 'bg-indigo-700 shadow-lg' : 'text-indigo-300 hover:bg-indigo-700 hover:text-white' }}"
+                   title="Ver Campanas">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10" />
+                    </svg>
+                </a>
+            @endif
 
             <div class="mt-auto">
                 <form method="POST" action="{{ route('logout') }}">
@@ -98,3 +117,5 @@
     @stack('scripts')
 </body>
 </html>
+
+

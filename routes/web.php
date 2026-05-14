@@ -2,14 +2,17 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\SpecialistPortalController;
 use App\Http\Controllers\SpecialistController;
+use App\Http\Controllers\SpecialistPortalController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    if (!auth()->check()) {
+    if (! auth()->check()) {
         return redirect('/login');
     }
 
@@ -35,7 +38,7 @@ Route::middleware('auth')->group(function () {
         return view('agenda');
     })->name('agenda');
 
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/conversations/summaries', [ConversationController::class, 'summaries'])->name('conversations.summaries');
@@ -59,11 +62,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::patch('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
 
+    Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
+    Route::get('/offers/create', [OfferController::class, 'create'])->name('offers.create');
+    Route::post('/offers', [OfferController::class, 'store'])->name('offers.store');
+    Route::get('/offers/{offer}/edit', [OfferController::class, 'edit'])->name('offers.edit');
+    Route::patch('/offers/{offer}', [OfferController::class, 'update'])->name('offers.update');
+    Route::delete('/offers/{offer}', [OfferController::class, 'destroy'])->name('offers.destroy');
+
+    Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+    Route::get('/campaigns/create', [CampaignController::class, 'create'])->name('campaigns.create');
+    Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
+    Route::get('/campaigns/{campaign}', [CampaignController::class, 'show'])->name('campaigns.show');
+    Route::get('/campaigns/{campaign}/edit', [CampaignController::class, 'edit'])->name('campaigns.edit');
+    Route::patch('/campaigns/{campaign}', [CampaignController::class, 'update'])->name('campaigns.update');
+    Route::post('/campaigns/{campaign}/send', [CampaignController::class, 'send'])->name('campaigns.send');
+    Route::delete('/campaigns/{campaign}', [CampaignController::class, 'destroy'])->name('campaigns.destroy');
+
     Route::get('/api/calendar-events', [BookingController::class, 'getCalendarEvents']);
     Route::get('/api/specialists/options', [BookingController::class, 'specialistsOptions']);
     Route::patch('/api/bookings/{booking}/confirm', [BookingController::class, 'confirm']);
     Route::patch('/api/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
     Route::patch('/api/bookings/{booking}/reschedule', [BookingController::class, 'reschedule']);
     Route::patch('/api/bookings/{booking}/assign-specialist', [BookingController::class, 'assignSpecialist']);
+    Route::delete('/api/bookings/{booking}', [BookingController::class, 'destroy']);
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });

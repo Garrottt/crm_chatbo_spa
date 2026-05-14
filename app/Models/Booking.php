@@ -19,6 +19,9 @@ class Booking extends Model
     protected $casts = [
         'scheduledAt' => 'datetime',
         'endAt' => 'datetime',
+        'offerDiscountSnapshot' => 'array',
+        'paymentProofMetadata' => 'array',
+        'paymentProofValidation' => 'array',
     ];
 
     public function client()
@@ -34,5 +37,15 @@ class Booking extends Model
     public function specialist()
     {
         return $this->belongsTo(Specialist::class, 'specialistId', 'id');
+    }
+
+    public function campaign()
+    {
+        return $this->belongsTo(Campaign::class, 'campaignId', 'id');
+    }
+
+    public function offer()
+    {
+        return $this->belongsTo(Offer::class, 'offerId', 'id');
     }
 }

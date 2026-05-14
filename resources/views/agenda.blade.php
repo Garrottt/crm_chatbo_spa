@@ -613,7 +613,7 @@
                     <div class="mt-4 flex items-end justify-between gap-3">
                         <div>
                             <p id="stat-pending" class="text-3xl font-black text-amber-500">0</p>
-                            <p class="mt-1 text-sm text-slate-500">Esperando confirmación</p>
+                            <p class="mt-1 text-sm text-slate-500">Esperando confirmacion</p>
                         </div>
                         <div class="rounded-2xl bg-amber-100 p-3 text-amber-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -778,13 +778,16 @@
                                 <button id="action-reschedule" type="button" class="agenda-action bg-indigo-600 text-white hover:bg-indigo-700">
                                     Reagendar y avisar al cliente
                                 </button>
+                                <button id="action-delete-cancelled" type="button" class="agenda-action bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                    Eliminar cita cancelada
+                                </button>
                             </div>
 
                             <div id="cancel-panel" class="agenda-inline-panel rounded-2xl border border-rose-200 bg-white px-4 py-4">
-                                <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-rose-400">Motivo de cancelación</p>
+                                <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-rose-400">Motivo de cancelacion</p>
                                 <textarea id="cancel-reason" rows="4" placeholder="Ej: Tuvimos un ajuste interno de horario, disculpa las molestias." class="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-rose-400"></textarea>
                                 <div class="mt-3 flex gap-3">
-                                    <button id="submit-cancel" type="button" class="agenda-action flex-1 bg-rose-500 text-white hover:bg-rose-600">Enviar cancelación</button>
+                                    <button id="submit-cancel" type="button" class="agenda-action flex-1 bg-rose-500 text-white hover:bg-rose-600">Enviar cancelacion</button>
                                     <button id="close-cancel-panel" type="button" class="agenda-action border border-slate-200 bg-white text-slate-700 hover:bg-slate-50">Cerrar</button>
                                 </div>
                             </div>
@@ -813,7 +816,7 @@
                             <!-- Acciones rapidas especialista -->
                             <div>
                                 <p class="detail-section-title">Acciones rapidas</p>
-                                <div class="grid grid-cols-3 gap-2">
+                                <div class="grid grid-cols-2 gap-2">
                                     <button id="specialist-view-client" type="button" class="specialist-quick-action">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5zm0 2c-3.314 0-10 1.664-10 5v3h20v-3c0-3.336-6.686-5-10-5z" />
@@ -831,6 +834,12 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
                                         </svg>
                                         Detalles
+                                    </button>
+                                    <button id="specialist-delete-cancelled" type="button" class="specialist-quick-action" disabled>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 7h12M9 7V4h6v3m-7 4v6m4-6v6m5-10v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7h10z" />
+                                        </svg>
+                                        Eliminar cancelada
                                     </button>
                                 </div>
                             </div>
@@ -884,6 +893,7 @@
             var actionConfirm = document.getElementById('action-confirm');
             var actionCancel = document.getElementById('action-cancel');
             var actionReschedule = document.getElementById('action-reschedule');
+            var actionDeleteCancelled = document.getElementById('action-delete-cancelled');
             var actionAssignSpecialist = document.getElementById('action-assign-specialist');
             var specialistSelect = document.getElementById('specialist-select');
             var submitCancel = document.getElementById('submit-cancel');
@@ -895,6 +905,7 @@
             var specialistViewClient = document.getElementById('specialist-view-client');
             var specialistGoToday = document.getElementById('specialist-go-today');
             var specialistViewDetails = document.getElementById('specialist-view-details');
+            var specialistDeleteCancelled = document.getElementById('specialist-delete-cancelled');
             var activeEvent = null;
             var isAdmin = @json(auth()->user()?->isAdmin());
             var isSpecialist = @json(auth()->user()?->isSpecialist());
@@ -935,6 +946,7 @@
                     actionConfirm.disabled = true;
                     actionCancel.disabled = true;
                     actionReschedule.disabled = true;
+                    if (actionDeleteCancelled) actionDeleteCancelled.disabled = true;
                     actionAssignSpecialist.disabled = true;
                     specialistSelect.disabled = true;
                 } else {
@@ -950,8 +962,15 @@
                 actionConfirm.disabled = isCancelled;
                 actionCancel.disabled = isCancelled;
                 actionReschedule.disabled = false;
+                if (actionDeleteCancelled) actionDeleteCancelled.disabled = !isCancelled;
                 actionAssignSpecialist.disabled = isCancelled;
                 specialistSelect.disabled = isCancelled;
+            }
+
+            function syncSpecialistActionAvailability() {
+                if (!isSpecialist || !specialistDeleteCancelled) return;
+                var isCancelled = !!(activeEvent && String(activeEvent.extendedProps.status || '').toUpperCase() === 'CANCELLED');
+                specialistDeleteCancelled.disabled = !isCancelled;
             }
 
             async function loadSpecialistOptions() {
@@ -1147,7 +1166,7 @@
             function renderDaySummary() {
                 var summary = getTodaySummary(calendar.getEvents());
                 var nextText = summary.nextAppointment
-                    ? formatClock(summary.nextAppointment.start) + ' · ' + (summary.nextAppointment.extendedProps.client || 'Cliente')
+                    ? formatClock(summary.nextAppointment.start) + ' - ' + (summary.nextAppointment.extendedProps.client || 'Cliente')
                     : 'Sin citas proximas';
                 var specialistsText = summary.specialists.length ? summary.specialists.join(', ') : 'Sin especialistas asignados';
 
@@ -1169,6 +1188,7 @@
                     ? 'Resumen rapido del dia actual. Selecciona una reserva para ver el cliente, servicio, especialista y acciones disponibles.'
                     : 'Resumen rapido de tu agenda actual. Selecciona una reserva para ver el cliente, servicio y horario asignado.';
                 if (isAdmin && specialistSelect) specialistSelect.value = '';
+                syncSpecialistActionAvailability();
                 hideActionPanels();
             }
 
@@ -1203,6 +1223,8 @@
                         specialistSelect.value = event.extendedProps.specialistId || '';
                     }
                     syncAdminActionAvailability();
+                } else if (isSpecialist) {
+                    syncSpecialistActionAvailability();
                 }
             }
 
@@ -1242,6 +1264,30 @@
                 calendar.refetchEvents();
             }
 
+            async function deleteBooking(url, successMessage) {
+                if (!activeEvent) { showFeedback('Primero selecciona una reserva.', 'error'); return; }
+                setButtonsDisabled(true);
+                showFeedback('Eliminando cita cancelada...', 'info');
+                try {
+                    var response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+                    });
+                    var payload = await response.json();
+                    if (!response.ok) throw new Error(payload.message || 'No se pudo eliminar la reserva.');
+                    var removedId = payload.bookingId || activeEvent.id;
+                    var eventToRemove = calendar.getEventById(removedId);
+                    if (eventToRemove) eventToRemove.remove();
+                    activeEvent = null;
+                    renderDaySummary();
+                    updateStats(calendar.getEvents());
+                    showFeedback(payload.message || successMessage, 'success');
+                } catch (error) {
+                    showFeedback(error.message || 'Ocurrio un error al eliminar la reserva.', 'error');
+                } finally {
+                    setButtonsDisabled(false);
+                }
+            }
             async function patchBooking(url, body, successMessage) {
                 if (!activeEvent) { showFeedback('Primero selecciona una reserva.', 'error'); return; }
                 setButtonsDisabled(true);
@@ -1257,7 +1303,7 @@
                     applyBookingUpdate(payload);
                     showFeedback(payload.message || successMessage, 'success');
                 } catch (error) {
-                    showFeedback(error.message || 'Ocurrió un error al actualizar la reserva.', 'error');
+                    showFeedback(error.message || 'Ocurrio un error al actualizar la reserva.', 'error');
                 } finally {
                     setButtonsDisabled(false);
                 }
@@ -1281,6 +1327,15 @@
                     if (!activeEvent) { showFeedback('Primero selecciona una reserva.', 'error'); return; }
                     showReschedulePanel();
                 });
+                actionDeleteCancelled?.addEventListener('click', function() {
+                    if (!activeEvent) { showFeedback('Primero selecciona una reserva.', 'error'); return; }
+                    if (String(activeEvent.extendedProps.status || '').toUpperCase() !== 'CANCELLED') {
+                        showFeedback('Solo puedes eliminar reservas que ya esten canceladas.', 'error');
+                        return;
+                    }
+                    if (!window.confirm('Esta accion eliminara la cita cancelada del calendario. Deseas continuar?')) return;
+                    deleteBooking('/api/bookings/' + activeEvent.id, 'Reserva cancelada eliminada.');
+                });
                 submitReschedule.addEventListener('click', function() {
                     if (!activeEvent) { showFeedback('Primero selecciona una reserva.', 'error'); return; }
                     if (!rescheduleStart.value) { showFeedback('Completa la nueva fecha y hora antes de reagendar.', 'error'); return; }
@@ -1303,6 +1358,15 @@
                     if (!activeEvent) { showFeedback('Selecciona una reserva para ver el cliente.', 'info'); return; }
                     showFeedback('Cliente asignado: ' + (activeEvent.extendedProps.client || 'Sin cliente'), 'info');
                 });
+                specialistDeleteCancelled?.addEventListener('click', function() {
+                    if (!activeEvent) { showFeedback('Selecciona una reserva cancelada para eliminarla.', 'info'); return; }
+                    if (String(activeEvent.extendedProps.status || '').toUpperCase() !== 'CANCELLED') {
+                        showFeedback('Solo puedes eliminar reservas canceladas.', 'error');
+                        return;
+                    }
+                    if (!window.confirm('Esta accion eliminara la cita cancelada de tu agenda. Deseas continuar?')) return;
+                    deleteBooking('/api/bookings/' + activeEvent.id, 'Reserva cancelada eliminada.');
+                });
             }
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1317,7 +1381,7 @@
                 stickyHeaderDates: true,
                 firstDay: 1,
 
-                // Evita que las reservas simultáneas se monten una encima de otra
+                // Evita que las reservas simultaneas se monten una encima de otra
                 eventOverlap: false,
                 slotEventOverlap: false,
                 eventMaxStack: 4,
@@ -1333,7 +1397,7 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+                buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
                 eventContent: function(arg) {
                     var startTime = arg.timeText || '';
                     var client = arg.event.extendedProps.client || arg.event.title || 'Reserva';
@@ -1368,7 +1432,7 @@
                                 </div>
                                 <div class="fc-event-client">${client}</div>
                                 <div class="fc-event-service">${service}</div>
-                                <div class="fc-event-specialist">👩‍⚕️ ${specialist}</div>
+                                <div class="fc-event-specialist">Esp.: ${specialist}</div>
                             </div>
                         `
                     };
@@ -1400,12 +1464,10 @@
                     lastRefreshDiff = { created: diff.createdIds.length, updated: diff.updatedIds.length };
                     var timestamp = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
                     if (lastRefreshDiff.created || lastRefreshDiff.updated) {
-                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' · Nuevas: ' + lastRefreshDiff.created + ' · Cambios: ' + lastRefreshDiff.updated);
+                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Nuevas: ' + lastRefreshDiff.created + ' - Cambios: ' + lastRefreshDiff.updated);
                     } else {
-                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' · Sin cambios recientes');
+                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Sin cambios recientes');
                     }
-                    if (activeEvent && diff.updatedIds.includes(activeEvent.id) && !hasActionPanelOpen()) showFeedback('La reserva seleccionada fue actualizada automaticamente.', 'info');
-                    if (activeEvent && diff.createdIds.includes(activeEvent.id) && !hasActionPanelOpen()) showFeedback('La reserva seleccionada acaba de aparecer en la agenda.', 'info');
                 }
             });
 
@@ -1422,3 +1484,4 @@
     </script>
     @endpush
 </x-app-layout>
+

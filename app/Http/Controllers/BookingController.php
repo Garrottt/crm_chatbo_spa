@@ -163,6 +163,31 @@ class BookingController extends Controller
         ]);
     }
 
+    public function destroy(Booking $booking)
+    {
+        if ($booking->status !== 'CANCELLED') {
+            return response()->json([
+                'message' => 'Solo es posible eliminar del calendario reservas que ya esten canceladas.',
+            ], 422);
+        }
+
+        $user = auth()->user();
+        $canDelete = $user && (
+            $user->isAdmin()
+            || ($user->isSpecialist() && $user->specialist?->id && $user->specialist->id === $booking->specialistId)
+        );
+
+        abort_unless($canDelete, 403);
+
+        $bookingId = $booking->id;
+        $booking->delete();
+
+        return response()->json([
+            'message' => 'Reserva cancelada eliminada del calendario correctamente.',
+            'bookingId' => $bookingId,
+        ]);
+    }
+
     public function assignSpecialist(Request $request, Booking $booking)
     {
         $this->ensureAdminCanManage($booking);
@@ -383,4 +408,5 @@ class BookingController extends Controller
         return rtrim((string) config('services.chatbot.base_url'), '/') . $path;
     }
 }
+
 

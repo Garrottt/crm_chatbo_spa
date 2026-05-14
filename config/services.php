@@ -36,7 +36,9 @@ return [
     ],
 
     'chatbot' => [
-        'base_url' => env('CHATBOT_BASE_URL', 'http://localhost:3001'),
+        'base_url'                  => env('CHATBOT_BASE_URL', 'http://localhost:3001'),
+        'campaign_template_name'    => env('CHATBOT_CAMPAIGN_TEMPLATE_NAME', ''),
+        'campaign_template_language'=> env('CHATBOT_CAMPAIGN_TEMPLATE_LANGUAGE', 'es'),
     ],
 
 ];

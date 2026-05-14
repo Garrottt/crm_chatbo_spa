@@ -25,4 +25,9 @@ class Service extends Model
     {
         return $this->belongsToMany(Specialist::class, '_SpecialistServices', 'A', 'B', 'id', 'id');
     }
+
+    public function offers()
+    {
+        return $this->hasMany(Offer::class, 'serviceId', 'id');
+    }
 }
