@@ -154,7 +154,7 @@ class CampaignController extends Controller
             );
 
             try {
-                $response = Http::connectTimeout(5)->timeout(20)->post($this->chatbotEndpoint('/api/crm/send-campaign'), [
+                $response = Http::connectTimeout(15)->timeout(120)->post($this->chatbotEndpoint('/api/crm/send-campaign'), [
                     'whatsappNumber'     => $client->whatsappNumber,
                     'clientId'           => $client->id,
                     'campaignId'         => $campaign->id,
