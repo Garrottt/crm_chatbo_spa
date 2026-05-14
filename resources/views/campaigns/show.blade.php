@@ -15,7 +15,7 @@
 
             <div class="flex flex-col gap-4 rounded-[28px] bg-slate-950 px-8 py-7 text-white shadow-xl lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <p class="text-[11px] font-black uppercase tracking-[0.28em] text-indigo-300">Campanas</p>
+                    <p class="text-[11px] font-black uppercase tracking-[0.28em] text-indigo-300">Campañas</p>
                     <h1 class="mt-2 text-3xl font-black tracking-tight">{{ $campaign->name }}</h1>
                     <p class="mt-2 max-w-3xl text-sm text-slate-300">{{ $campaign->objective }}. Oferta asociada: {{ $campaign->offer?->name ?: 'Sin oferta' }}.</p>
                 </div>
@@ -24,7 +24,7 @@
                         <a href="{{ route('campaigns.edit', $campaign) }}" class="inline-flex items-center justify-center rounded-2xl border border-white/15 px-5 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-white/5">Editar</a>
                         <form method="POST" action="{{ route('campaigns.send', $campaign) }}">
                             @csrf
-                            <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-indigo-50">Enviar campana</button>
+                            <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-indigo-50">Enviar campaña</button>
                         </form>
                     @endif
                     <a href="{{ route('campaigns.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-white/15 px-5 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-white/5">Volver</a>
@@ -145,7 +145,7 @@
                                         <td class="px-4 py-3 align-top text-xs text-slate-500">{{ $detailText }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="7" class="px-4 py-8 text-center text-sm font-medium text-slate-500">Esta campana aun no tiene destinatarios registrados.</td></tr>
+                                    <tr><td colspan="7" class="px-4 py-8 text-center text-sm font-medium text-slate-500">Esta campaña aun no tiene destinatarios registrados.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

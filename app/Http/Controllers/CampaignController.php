@@ -154,18 +154,29 @@ class CampaignController extends Controller
             );
 
             try {
-                $response = Http::connectTimeout(15)->timeout(120)->post($this->chatbotEndpoint('/api/crm/send-campaign'), [
+                $payload = [
                     'whatsappNumber'     => $client->whatsappNumber,
                     'clientId'           => $client->id,
                     'campaignId'         => $campaign->id,
                     'offerId'            => $campaign->offerId,
                     'campaignRecipientId'=> $recipient->id,
                     'message'            => $message,
-                    'serviceId'          => $campaign->offer?->serviceId,
-                    'specialistId'       => $campaign->offer?->specialistId,
-                    'templateName'       => config('services.chatbot.campaign_template_name') ?: null,
-                    'templateLanguage'   => config('services.chatbot.campaign_template_language', 'es'),
-                ]);
+                ];
+
+                if ($campaign->offer?->serviceId) {
+                    $payload['serviceId'] = $campaign->offer->serviceId;
+                }
+                if ($campaign->offer?->specialistId) {
+                    $payload['specialistId'] = $campaign->offer->specialistId;
+                }
+                if (config('services.chatbot.campaign_template_name')) {
+                    $payload['templateName'] = config('services.chatbot.campaign_template_name');
+                }
+                if (config('services.chatbot.campaign_template_language')) {
+                    $payload['templateLanguage'] = config('services.chatbot.campaign_template_language');
+                }
+
+                $response = Http::connectTimeout(15)->timeout(120)->post($this->chatbotEndpoint('/api/crm/send-campaign'), $payload);
 
                 if (! $response->successful()) {
                     $recipient->update([
