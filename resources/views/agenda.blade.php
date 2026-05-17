@@ -229,6 +229,17 @@
             color: #be123c;
         }
 
+        .fc-event-status-completed {
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+
+        .fc-event-status-completed .fc-event-mini-status {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
         .fc-event-status-default {
             background: linear-gradient(180deg, #eef2ff 0%, #e0e7ff 100%);
             color: #312e81;
@@ -283,6 +294,15 @@
 
         .status-cancelled .status-dot {
             background: #ef4444;
+        }
+
+        .status-completed {
+            background: rgba(100, 116, 139, 0.14);
+            color: #475569;
+        }
+
+        .status-completed .status-dot {
+            background: #64748b;
         }
 
         .status-default {
@@ -577,7 +597,7 @@
             </section>
 
             <!-- Stats -->
-            <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                 <article class="agenda-stat-card rounded-[1.75rem] border border-white/70 bg-white/90 px-5 py-5 backdrop-blur">
                     <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-400">Bloques del calendario</p>
                     <div class="mt-4 flex items-end justify-between gap-3">
@@ -618,6 +638,21 @@
                         <div class="rounded-2xl bg-amber-100 p-3 text-amber-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="agenda-stat-card rounded-[1.75rem] border border-slate-200 bg-white/90 px-5 py-5 backdrop-blur">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-400">Completadas</p>
+                    <div class="mt-4 flex items-end justify-between gap-3">
+                        <div>
+                            <p id="stat-completed" class="text-3xl font-black text-slate-500">0</p>
+                            <p class="mt-1 text-sm text-slate-500">Atenciones finalizadas</p>
+                        </div>
+                        <div class="rounded-2xl bg-slate-100 p-3 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4M7 3h10a2 2 0 012 2v14l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z" />
                             </svg>
                         </div>
                     </div>
@@ -873,6 +908,7 @@
             var statConfirmed = document.getElementById('stat-confirmed');
             var statPending = document.getElementById('stat-pending');
             var statCancelled = document.getElementById('stat-cancelled');
+            var statCompleted = document.getElementById('stat-completed');
             var detailTitle = document.getElementById('detail-title');
             var detailStatus = document.getElementById('detail-status');
             var detailClientLabel = document.getElementById('detail-client-label');
@@ -937,6 +973,7 @@
                 if (normalized === 'CONFIRMED') return { label: 'Confirmada', className: 'status-confirmed' };
                 if (normalized === 'PENDING') return { label: 'Pendiente', className: 'status-pending' };
                 if (normalized === 'CANCELLED') return { label: 'Cancelada', className: 'status-cancelled' };
+                if (normalized === 'COMPLETED') return { label: 'Completada', className: 'status-completed' };
                 return { label: normalized || 'Sin estado', className: 'status-default' };
             }
 
@@ -958,13 +995,15 @@
 
             function syncAdminActionAvailability() {
                 if (!isAdmin) return;
-                var isCancelled = !!(activeEvent && String(activeEvent.extendedProps.status || '').toUpperCase() === 'CANCELLED');
-                actionConfirm.disabled = isCancelled;
-                actionCancel.disabled = isCancelled;
-                actionReschedule.disabled = false;
+                var status = activeEvent ? String(activeEvent.extendedProps.status || '').toUpperCase() : '';
+                var isCancelled = status === 'CANCELLED';
+                var isCompleted = status === 'COMPLETED';
+                actionConfirm.disabled = isCancelled || isCompleted;
+                actionCancel.disabled = isCancelled || isCompleted;
+                actionReschedule.disabled = isCompleted;
                 if (actionDeleteCancelled) actionDeleteCancelled.disabled = !isCancelled;
-                actionAssignSpecialist.disabled = isCancelled;
-                specialistSelect.disabled = isCancelled;
+                actionAssignSpecialist.disabled = isCancelled || isCompleted;
+                specialistSelect.disabled = isCancelled || isCompleted;
             }
 
             function syncSpecialistActionAvailability() {
@@ -1118,17 +1157,19 @@
             }
 
             function updateStats(events) {
-                var totals = { total: events.length, confirmed: 0, pending: 0, cancelled: 0 };
+                var totals = { total: events.length, confirmed: 0, pending: 0, cancelled: 0, completed: 0 };
                 events.forEach(function(event) {
                     var status = (event.extendedProps.status || '').toUpperCase();
                     if (status === 'CONFIRMED') totals.confirmed += 1;
                     if (status === 'PENDING') totals.pending += 1;
                     if (status === 'CANCELLED') totals.cancelled += 1;
+                    if (status === 'COMPLETED') totals.completed += 1;
                 });
                 statTotal.textContent = totals.total;
                 statConfirmed.textContent = totals.confirmed;
                 statPending.textContent = totals.pending;
                 statCancelled.textContent = totals.cancelled;
+                if (statCompleted) statCompleted.textContent = totals.completed;
             }
 
             function sameDay(left, right) {
@@ -1423,6 +1464,11 @@
                         statusClass = 'cancelled';
                     }
 
+                    if (status === 'COMPLETED') {
+                        statusLabel = 'Completada';
+                        statusClass = 'completed';
+                    }
+
                     return {
                         html: `
                             <div class="fc-event-card fc-event-status-${statusClass}">
@@ -1444,6 +1490,7 @@
                     if (status === 'CONFIRMED') return ['calendar-event-confirmed'];
                     if (status === 'PENDING') return ['calendar-event-pending'];
                     if (status === 'CANCELLED') return ['calendar-event-cancelled'];
+                    if (status === 'COMPLETED') return ['calendar-event-completed'];
 
                     return ['calendar-event-default'];
 

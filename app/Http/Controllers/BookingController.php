@@ -17,6 +17,8 @@ class BookingController extends Controller
 
     public function getCalendarEvents(Request $request): JsonResponse
     {
+        $this->markCompletedBookings();
+
         $query = Booking::with(['service', 'client', 'specialist']);
 
         $start = $request->date('start');
@@ -136,7 +138,7 @@ class BookingController extends Controller
             'scheduledAt' => ['required', 'date'],
         ]);
 
-        $newStatus = $booking->status === 'CANCELLED' ? 'PENDING' : $booking->status;
+        $newStatus = in_array($booking->status, ['CANCELLED', 'COMPLETED'], true) ? 'PENDING' : $booking->status;
         $durationMinutes = max(1, (int) ($booking->service->durationMinutes ?? 60));
         $newStart = Carbon::createFromFormat('Y-m-d\TH:i', $data['scheduledAt'], self::SPA_TIMEZONE)->utc();
         $newEnd = (clone $newStart)->addMinutes($durationMinutes);
@@ -192,9 +194,9 @@ class BookingController extends Controller
     {
         $this->ensureAdminCanManage($booking);
 
-        if ($booking->status === 'CANCELLED') {
+        if (in_array($booking->status, ['CANCELLED', 'COMPLETED'], true)) {
             return response()->json([
-                'message' => 'No es posible cambiar el especialista de una reserva cancelada.',
+                'message' => 'No es posible cambiar el especialista de una reserva cancelada o completada.',
             ], 422);
         }
 
@@ -386,10 +388,22 @@ class BookingController extends Controller
         });
     }
 
+    private function markCompletedBookings(): void
+    {
+        Booking::query()
+            ->where('status', 'CONFIRMED')
+            ->whereNotNull('endAt')
+            ->where('endAt', '<=', Carbon::now(self::SPA_TIMEZONE)->subMinute()->utc())
+            ->update([
+                'status' => 'COMPLETED',
+            ]);
+    }
+
     private function statusColor(?string $status): string
     {
         return match ($status) {
             'CONFIRMED' => '#10b981',
+            'COMPLETED' => '#64748b',
             'PENDING' => '#f59e0b',
             'CANCELLED' => '#ef4444',
             default => '#3b82f6',

@@ -519,8 +519,9 @@
                                 <div class="text-xs font-medium text-slate-600">{{ $booking->service->name ?? 'Servicio' }}</div>
 
                                 <div class="text-center">
-                                    <span class="inline-flex rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] {{ strtoupper($booking->status) === 'CONFIRMED' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600' }}">
-                                        {{ strtoupper($booking->status) === 'CONFIRMED' ? 'Confirmada' : 'Pendiente' }}
+                                    @php($bookingStatus = strtoupper($booking->status))
+                                    <span class="inline-flex rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] {{ $bookingStatus === 'CONFIRMED' ? 'bg-emerald-50 text-emerald-600' : ($bookingStatus === 'COMPLETED' ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-600') }}">
+                                        {{ $bookingStatus === 'CONFIRMED' ? 'Confirmada' : ($bookingStatus === 'COMPLETED' ? 'Completada' : 'Pendiente') }}
                                     </span>
                                 </div>
                             </div>

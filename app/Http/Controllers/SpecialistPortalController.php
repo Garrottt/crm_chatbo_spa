@@ -30,6 +30,8 @@ class SpecialistPortalController extends Controller
             ->where('userId', $user->id)
             ->firstOrFail();
 
+        $this->markCompletedBookings();
+
         $now = Carbon::now(self::SPA_TIMEZONE);
         $todayStart = $now->copy()->startOfDay()->utc();
         $todayEnd = $now->copy()->endOfDay()->utc();
@@ -45,7 +47,7 @@ class SpecialistPortalController extends Controller
         $upcomingBookings = Booking::with(['client', 'service'])
             ->where('specialistId', $specialist->id)
             ->where('scheduledAt', '>=', $nowUtc)
-            ->where('status', '!=', 'CANCELLED')
+            ->whereNotIn('status', ['CANCELLED', 'COMPLETED'])
             ->orderBy('scheduledAt')
             ->limit(8)
             ->get();
@@ -109,6 +111,17 @@ class SpecialistPortalController extends Controller
             'availability' => $availability,
             'nextBooking' => $upcomingBookings->first(),
         ]);
+    }
+
+    private function markCompletedBookings(): void
+    {
+        Booking::query()
+            ->where('status', 'CONFIRMED')
+            ->whereNotNull('endAt')
+            ->where('endAt', '<=', Carbon::now(self::SPA_TIMEZONE)->subMinute()->utc())
+            ->update([
+                'status' => 'COMPLETED',
+            ]);
     }
 
     private function formatOccupiedHours(int $minutes): string
