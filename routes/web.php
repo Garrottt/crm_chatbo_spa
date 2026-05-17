@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\AlertController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ConversationController;
@@ -39,6 +40,11 @@ Route::middleware('auth')->group(function () {
     })->name('agenda');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
+    Route::get('/alerts/summary', [AlertController::class, 'summary'])->name('alerts.summary');
+    Route::patch('/alerts/{alert}/read', [AlertController::class, 'read'])->name('alerts.read');
+    Route::patch('/alerts/read-all', [AlertController::class, 'readAll'])->name('alerts.read-all');
 
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::get('/conversations/summaries', [ConversationController::class, 'summaries'])->name('conversations.summaries');

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Conversation;
+use App\Models\Alert;
 use App\Models\Specialist;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -101,6 +103,7 @@ class BookingController extends Controller
         ]);
 
         $booking->load(['client', 'service', 'specialist']);
+        $this->createBookingAlert($booking, 'confirmed', 'crm');
         $this->dispatchNotificationAfterResponse($booking->id, 'confirmation');
 
         return response()->json([
@@ -122,6 +125,7 @@ class BookingController extends Controller
         ]);
 
         $booking->load(['client', 'service', 'specialist']);
+        $this->createBookingAlert($booking, 'cancelled', 'crm', $data['reason'] ?? null);
         $this->dispatchNotificationAfterResponse($booking->id, 'cancellation', $data['reason'] ?? null);
 
         return response()->json([
@@ -386,6 +390,64 @@ class BookingController extends Controller
                 $this->sendRescheduleNotification($booking);
             }
         });
+    }
+
+    private function createBookingAlert(Booking $booking, string $status, string $source, ?string $reason = null): void
+    {
+        $booking->loadMissing(['client', 'service', 'specialist.user']);
+
+        $isCancelled = $status === 'cancelled';
+        $type = $isCancelled ? 'booking_cancelled' : 'booking_confirmed';
+        $title = $isCancelled ? 'Reserva cancelada' : 'Nueva reserva confirmada';
+        $clientName = $booking->client->name ?? 'Cliente';
+        $serviceName = $booking->service->name ?? 'Servicio';
+        $specialistName = $booking->specialist?->name ?? 'Sin especialista asignado';
+        $dateLabel = sprintf(
+            '%s - %s',
+            optional($booking->scheduledAt)->copy()->timezone(self::SPA_TIMEZONE)->format('d/m/Y H:i'),
+            optional($booking->endAt)->copy()->timezone(self::SPA_TIMEZONE)->format('H:i')
+        );
+
+        $body = $isCancelled
+            ? "{$clientName} cancelo {$serviceName} para {$dateLabel}. Especialista: {$specialistName}."
+            : "{$clientName} confirmo {$serviceName} para {$dateLabel}. Especialista: {$specialistName}.";
+
+        if ($reason) {
+            $body .= ' Motivo: ' . trim($reason) . '.';
+        }
+
+        $recipients = User::query()
+            ->where('role', 'ADMIN')
+            ->get(['id', 'role'])
+            ->map(fn (User $user) => ['id' => $user->id, 'role' => $user->role])
+            ->values();
+
+        if ($booking->specialist?->userId) {
+            $recipients->push(['id' => $booking->specialist->userId, 'role' => 'SPECIALIST']);
+        }
+
+        foreach ($recipients->unique('id') as $recipient) {
+            Alert::query()->firstOrCreate(
+                ['eventKey' => "booking:{$booking->id}:{$status}:user:{$recipient['id']}"],
+                [
+                    'type' => $type,
+                    'title' => $title,
+                    'body' => $body,
+                    'recipientUserId' => $recipient['id'],
+                    'recipientRole' => $recipient['role'],
+                    'clientId' => $booking->clientId,
+                    'bookingId' => $booking->id,
+                    'conversationId' => null,
+                    'actionUrl' => "/agenda?booking={$booking->id}",
+                    'metadata' => [
+                        'source' => $source,
+                        'serviceName' => $serviceName,
+                        'specialistName' => $specialistName,
+                        'reason' => $reason,
+                    ],
+                ]
+            );
+        }
     }
 
     private function markCompletedBookings(): void

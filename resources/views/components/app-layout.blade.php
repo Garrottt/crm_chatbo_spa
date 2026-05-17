@@ -108,12 +108,140 @@
             </div>
         </div>
 
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <main class="relative flex-1 flex flex-col overflow-hidden">
+            @auth
+                <div class="absolute right-6 top-5 z-40" data-alert-widget>
+                    <button type="button" data-alert-toggle class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-lg shadow-slate-300/50 ring-1 ring-slate-200 transition hover:bg-slate-50" title="Alertas">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
+                        </svg>
+                        <span data-alert-count class="absolute -right-1 -top-1 hidden min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white">0</span>
+                    </button>
+
+                    <div data-alert-panel class="hidden absolute right-0 mt-3 w-[22rem] overflow-hidden rounded-[1.5rem] bg-white shadow-2xl shadow-slate-300/60 ring-1 ring-slate-200">
+                        <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Alertas</p>
+                                <h2 class="text-base font-black text-slate-950">Notificaciones recientes</h2>
+                            </div>
+                            <button type="button" data-alert-read-all class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600 hover:text-indigo-500">
+                                Leer todas
+                            </button>
+                        </div>
+                        <div data-alert-list class="max-h-96 overflow-y-auto"></div>
+                        <a href="{{ route('alerts.index') }}" class="block border-t border-slate-100 px-5 py-3 text-center text-xs font-black uppercase tracking-[0.2em] text-slate-700 hover:bg-slate-50">
+                            Ver historial
+                        </a>
+                    </div>
+                </div>
+            @endauth
+
             {{ $slot }}
         </main>
     </div>
 
     @livewireScripts
+    @auth
+        <script>
+            (function() {
+                var widget = document.querySelector('[data-alert-widget]');
+                if (!widget) return;
+
+                var toggle = widget.querySelector('[data-alert-toggle]');
+                var panel = widget.querySelector('[data-alert-panel]');
+                var list = widget.querySelector('[data-alert-list]');
+                var count = widget.querySelector('[data-alert-count]');
+                var readAll = widget.querySelector('[data-alert-read-all]');
+                var csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                function escapeHtml(value) {
+                    return String(value || '').replace(/[&<>"']/g, function(char) {
+                        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
+                    });
+                }
+
+                function render(alerts) {
+                    if (!alerts.length) {
+                        list.innerHTML = '<div class="px-5 py-8 text-center text-sm font-semibold text-slate-500">No hay alertas recientes.</div>';
+                        return;
+                    }
+
+                    list.innerHTML = alerts.map(function(alert) {
+                        var dot = alert.read ? '' : '<span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-indigo-500"></span>';
+                        var href = alert.actionUrl || '/alerts';
+                        return '<a href="' + escapeHtml(href) + '" data-alert-link="' + escapeHtml(alert.id) + '" class="flex gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0 hover:bg-slate-50">' +
+                            dot +
+                            '<span class="min-w-0 flex-1">' +
+                                '<span class="block text-sm font-black text-slate-950">' + escapeHtml(alert.title) + '</span>' +
+                                '<span class="mt-1 block text-xs font-medium leading-5 text-slate-600">' + escapeHtml(alert.body) + '</span>' +
+                                '<span class="mt-2 block text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">' + escapeHtml(alert.createdAt) + '</span>' +
+                            '</span>' +
+                        '</a>';
+                    }).join('');
+                }
+
+                async function refreshAlerts() {
+                    try {
+                        var response = await fetch('{{ route('alerts.summary') }}', { headers: { 'Accept': 'application/json' } });
+                        if (!response.ok) return;
+                        var payload = await response.json();
+                        var unread = Number(payload.unreadCount || 0);
+                        count.textContent = unread > 99 ? '99+' : String(unread);
+                        count.classList.toggle('hidden', unread <= 0);
+                        render(payload.alerts || []);
+                    } catch (error) {}
+                }
+
+                async function markRead(id) {
+                    if (!id) return;
+                    await fetch('/alerts/' + encodeURIComponent(id) + '/read', {
+                        method: 'PATCH',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf
+                        }
+                    }).catch(function() {});
+                    refreshAlerts();
+                }
+
+                toggle.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    panel.classList.toggle('hidden');
+                    refreshAlerts();
+                });
+
+                list.addEventListener('click', function(event) {
+                    var link = event.target.closest('[data-alert-link]');
+                    if (!link) return;
+                    event.preventDefault();
+                    markRead(link.dataset.alertLink).finally(function() {
+                        window.location.href = link.getAttribute('href') || '/alerts';
+                    });
+                });
+
+                readAll.addEventListener('click', function() {
+                    fetch('{{ route('alerts.read-all') }}', {
+                        method: 'PATCH',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf
+                        }
+                    }).then(refreshAlerts).catch(function() {});
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!widget.contains(event.target)) {
+                        panel.classList.add('hidden');
+                    }
+                });
+
+                refreshAlerts();
+                setInterval(refreshAlerts, 8000);
+            })();
+        </script>
+    @endauth
     @stack('scripts')
 </body>
 </html>
