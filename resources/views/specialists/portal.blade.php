@@ -142,67 +142,91 @@
             line-height: 1.2;
             white-space: nowrap;
             letter-spacing: -0.01em;
-        }        .specialist-panel-next-card {
-            min-height: 188px;
         }
+
+        .specialist-panel-next-card,
+        .specialist-panel-summary-card,
+        .specialist-panel-today-card,
+        .specialist-panel-availability-card {
+            min-height: 0;
+        }
+
+        .specialist-panel-next-card,
+        .specialist-panel-summary-card {
+            height: 138px;
+        }
+
+        .specialist-panel-next-body {
+            min-height: 82px;
+        }
+
         .specialist-panel-next-time {
             display: flex;
-            min-height: 100%;
+            min-height: 0;
             flex-direction: column;
+            align-items: center;
             justify-content: center;
         }
-        .specialist-panel-summary-card {
-            min-height: 188px;
-        }
-        .specialist-panel-today-table {
-            max-height: 168px;
-            overflow-y: auto;
-        }
+
+        .specialist-panel-today-card,
         .specialist-panel-availability-card {
-            min-height: 280px;
+            min-height: 216px;
         }
+
+        .specialist-panel-today-table {
+            overflow: hidden;
+        }
+
         .specialist-panel-availability-list {
-            max-height: 192px;
-            overflow-y: auto;
-            padding-right: 0.2rem;
+            padding-right: 0;
         }
-        .specialist-panel-services-card {
-            padding-top: 1.25rem;
-            padding-bottom: 1.25rem;
-        }
+
         .specialist-panel-service-row {
-            min-height: 108px;
+            min-height: 88px;
         }
+
         .specialist-panel-service-copy {
             max-width: 28rem;
         }
+
         .specialist-panel-service-meta {
             align-self: center;
         }
+
         @media (max-width: 1279px) {
-            .specialist-panel-today-table,
-            .specialist-panel-availability-list {
-                max-height: none;
-            }
             .specialist-panel-next-card,
             .specialist-panel-summary-card,
+            .specialist-panel-today-card,
             .specialist-panel-availability-card {
+                height: auto;
                 min-height: 0;
             }
+
+            .specialist-panel-next-body {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .specialist-panel-next-time {
+                border-left: 0;
+                border-top: 1px solid #e2e8f0;
+                padding-left: 0;
+                padding-top: 0.75rem;
+            }
         }
+
         @media (max-width: 768px) {
             .specialist-panel-service-row {
                 align-items: flex-start;
                 flex-direction: column;
             }
+
             .specialist-panel-service-meta {
                 align-items: flex-start;
                 flex-wrap: wrap;
                 padding-left: 0;
             }
         }
-
-        @media (max-width: 1024px) {
+@media (max-width: 1024px) {
             .specialist-panel-grid-two {
                 grid-template-columns: 1fr;
             }
@@ -258,7 +282,7 @@
     @endpush
 
     <div class="specialist-panel-shell h-full overflow-y-auto px-6 py-6 md:px-8">
-        <div class="mx-auto max-w-[1500px] space-y-4">
+        <div class="mx-auto max-w-[1240px] space-y-3">
 
             <!-- Hero Section -->
             <section class="specialist-panel-hero rounded-[2rem] px-7 py-5 text-white md:px-9 md:py-5 xl:px-10 xl:py-5">
@@ -319,63 +343,63 @@
 
             <!-- Stats -->
             <section class="specialist-panel-inner-band">
-                <div class="grid gap-4 md:grid-cols-2 2xl:grid-cols-4 xl:grid-cols-2">
-                    <article class="specialist-panel-soft-card rounded-[1.7rem] px-6 py-5">
+                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <article class="specialist-panel-soft-card rounded-[1rem] px-5 py-4">
                         <div class="flex items-center gap-4">
-                            <div class="specialist-panel-stat-icon flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="specialist-panel-stat-icon flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Servicios asignados</p>
-                                <p class="mt-1.5 text-[2.35rem] font-black text-slate-900">{{ $stats['services'] }}</p>
-                                <p class="mt-1 text-sm text-slate-500">Servicios activos</p>
+                                <p class="mt-1 text-[1.7rem] font-black leading-none text-slate-900">{{ $stats['services'] }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Servicios activos</p>
                             </div>
                         </div>
                     </article>
 
-                    <article class="specialist-panel-soft-card rounded-[1.7rem] px-6 py-5">
+                    <article class="specialist-panel-soft-card rounded-[1rem] px-5 py-4">
                         <div class="flex items-center gap-4">
-                            <div class="specialist-panel-stat-icon flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="specialist-panel-stat-icon flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Citas de hoy</p>
-                                <p class="mt-1.5 text-[2.35rem] font-black text-slate-900">{{ $stats['today'] }}</p>
-                                <p class="mt-1 text-sm text-slate-500">Reservas programadas</p>
+                                <p class="mt-1 text-[1.7rem] font-black leading-none text-slate-900">{{ $stats['today'] }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Reservas programadas</p>
                             </div>
                         </div>
                     </article>
 
-                    <article class="specialist-panel-soft-card rounded-[1.7rem] px-6 py-5">
+                    <article class="specialist-panel-soft-card rounded-[1rem] px-5 py-4">
                         <div class="flex items-center gap-4">
-                            <div class="specialist-panel-stat-icon flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="specialist-panel-stat-icon flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Pendientes hoy</p>
-                                <p class="mt-1.5 text-[2.35rem] font-black text-slate-900">{{ $stats['pending'] }}</p>
-                                <p class="mt-1 text-sm text-slate-500">Esperando confirmacion</p>
+                                <p class="mt-1 text-[1.7rem] font-black leading-none text-slate-900">{{ $stats['pending'] }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Esperando confirmacion</p>
                             </div>
                         </div>
                     </article>
 
-                    <article class="specialist-panel-soft-card rounded-[1.7rem] px-6 py-5">
+                    <article class="specialist-panel-soft-card rounded-[1rem] px-5 py-4">
                         <div class="flex items-center gap-4">
-                            <div class="specialist-panel-stat-icon flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="specialist-panel-stat-icon flex h-11 w-11 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3v18h18M7 14l3-3 3 2 5-5" />
                                 </svg>
                             </div>
                             <div>
                                 <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Citas esta semana</p>
-                                <p class="mt-1.5 text-[2.35rem] font-black text-slate-900">{{ $stats['week'] }}</p>
-                                <p class="mt-1 text-sm text-slate-500">Total programadas</p>
+                                <p class="mt-1 text-[1.7rem] font-black leading-none text-slate-900">{{ $stats['week'] }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Total programadas</p>
                             </div>
                         </div>
                     </article>
@@ -383,20 +407,20 @@
             </section>
 
             <!-- Siguiente Cita + Resumen del dÃ­a -->
-            <section class="specialist-panel-grid-two grid gap-4 xl:grid-cols-[1.08fr,0.92fr]">
-                <article class="specialist-panel-card rounded-[1.9rem] border-l-[4px] border-l-emerald-500 px-5 py-4 md:px-6 specialist-panel-next-card">
+            <section class="specialist-panel-grid-two grid gap-3 xl:grid-cols-2">
+                <article class="specialist-panel-card specialist-panel-next-card rounded-[1rem] border-l-[3px] border-l-emerald-500 px-5 py-4">
                     <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Siguiente cita</p>
                     @if($nextBooking)
-                        <div class="mt-4 grid gap-4 lg:grid-cols-[1.12fr,0.88fr] lg:items-center">
+                        <div class="specialist-panel-next-body mt-3 grid grid-cols-2 items-center gap-4">
                             <div class="flex items-center gap-4">
-                                <div class="flex h-13 w-13 items-center justify-center rounded-full bg-emerald-100 text-lg font-black text-emerald-700">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-base font-black text-emerald-700">
                                     {{ strtoupper(substr($nextBooking->client->name ?? 'C', 0, 2)) }}
                                 </div>
                                 <div class="min-w-0">
-                                    <h2 class="truncate text-[2rem] font-black tracking-tight text-slate-900">{{ $nextBooking->client->name ?? 'Cliente sin nombre' }}</h2>
-                                    <p class="mt-1 text-base font-semibold text-slate-600">{{ $nextBooking->service->name ?? 'Servicio sin nombre' }}</p>
-                                    <div class="mt-2 flex items-center gap-2 text-sm font-medium text-slate-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <h2 class="truncate text-xl font-black tracking-tight text-slate-900">{{ $nextBooking->client->name ?? 'Cliente sin nombre' }}</h2>
+                                    <p class="mt-1 text-sm font-semibold text-slate-600">{{ $nextBooking->service->name ?? 'Servicio sin nombre' }}</p>
+                                    <div class="mt-2 flex items-center gap-2 text-xs font-medium text-slate-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <span>{{ optional($nextBooking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('l d \\d\\e F') }}</span>
@@ -404,9 +428,9 @@
                                 </div>
                             </div>
 
-                            <div class="specialist-panel-next-time border-t border-slate-200 pt-3 text-center lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-                                <span class="inline-flex rounded-full bg-emerald-100 px-4 py-1.5 text-xs font-black uppercase tracking-[0.24em] text-emerald-700">Confirmada</span>
-                                <p class="mt-3 text-[2.55rem] font-black tracking-tight text-slate-900">
+                            <div class="specialist-panel-next-time h-full border-l border-slate-200 pl-5 text-center">
+                                <span class="inline-flex rounded-full bg-emerald-100 px-4 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-emerald-700">Confirmada</span>
+                                <p class="mt-2 whitespace-nowrap text-[1.55rem] font-black tracking-tight text-slate-900">
                                     {{ optional($nextBooking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}
                                     -
                                     {{ optional($nextBooking->endAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}
@@ -420,42 +444,42 @@
                     @endif
                 </article>
 
-                <article class="specialist-panel-card rounded-[1.9rem] px-5 py-4 md:px-6 specialist-panel-summary-card">
+                <article class="specialist-panel-card specialist-panel-summary-card rounded-[1rem] px-5 py-4">
                     <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Resumen del dia</p>
-                    <div class="specialist-summary-grid mt-4 grid gap-3 lg:grid-cols-3">
+                    <div class="specialist-summary-grid mt-1 grid h-[58px] -translate-y-1 items-center gap-3 lg:grid-cols-3">
                         <div class="specialist-summary-stat">
-                            <div class="specialist-summary-icon bg-violet-100 text-violet-600" style="height:2.9rem;width:2.9rem;">
+                            <div class="specialist-summary-icon bg-violet-100 text-violet-600" style="height:2.45rem;width:2.45rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
-                                <p class="specialist-summary-value" style="font-size:1.6rem;">{{ $todaySummary['appointments'] }}</p>
-                                <p class="specialist-summary-label" style="font-size:0.85rem;">Total de citas</p>
+                                <p class="specialist-summary-value" style="font-size:1.2rem;">{{ $todaySummary['appointments'] }}</p>
+                                <p class="specialist-summary-label" style="font-size:0.72rem;">Total de citas</p>
                             </div>
                         </div>
 
                         <div class="specialist-summary-stat">
-                            <div class="specialist-summary-icon bg-sky-100 text-sky-600" style="height:2.9rem;width:2.9rem;">
+                            <div class="specialist-summary-icon bg-sky-100 text-sky-600" style="height:2.45rem;width:2.45rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
                             <div>
-                                <p class="specialist-summary-value" style="font-size:1.6rem;">{{ $todaySummary['occupiedHours'] }}</p>
-                                <p class="specialist-summary-label" style="font-size:0.85rem;">Horas ocupadas</p>
+                                <p class="specialist-summary-value" style="font-size:1.2rem;">{{ $todaySummary['occupiedHours'] }}</p>
+                                <p class="specialist-summary-label" style="font-size:0.72rem;">Horas ocupadas</p>
                             </div>
                         </div>
 
                         <div class="specialist-summary-stat">
-                            <div class="specialist-summary-icon bg-emerald-100 text-emerald-600" style="height:2.9rem;width:2.9rem;">
+                            <div class="specialist-summary-icon bg-emerald-100 text-emerald-600" style="height:2.45rem;width:2.45rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
                             <div>
-                                <p class="specialist-summary-value is-wide" style="font-size:1rem;">{{ $todaySummary['statusLabel'] }}</p>
-                                <p class="specialist-summary-label" style="font-size:0.85rem;">{{ $todaySummary['statusHint'] }}</p>
+                                <p class="specialist-summary-value is-wide" style="font-size:0.82rem;">{{ $todaySummary['statusLabel'] }}</p>
+                                <p class="specialist-summary-label" style="font-size:0.72rem;">{{ $todaySummary['statusHint'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -463,23 +487,23 @@
             </section>
 
             <!-- Citas de hoy + Disponibilidad semanal -->
-            <section class="specialist-panel-grid-two grid items-start gap-4 xl:grid-cols-[1fr,1fr]">
+            <section class="specialist-panel-grid-two grid items-start gap-3 xl:grid-cols-2">
 
                 <!-- CITAS DE HOY -->
-                <article class="specialist-panel-card self-stretch rounded-[1.9rem] px-6 py-5 md:px-7">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-5">Citas de hoy</p>
+                <article class="specialist-panel-card specialist-panel-today-card self-stretch rounded-[1rem] px-5 py-4">
+                    <p class="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">Citas de hoy</p>
 
-                    <div class="grid grid-cols-[120px_1fr_1fr_120px] gap-4 px-4 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    <div class="grid grid-cols-[112px_1fr_1fr_118px] gap-3 px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                         <span>Hora</span>
                         <span>Cliente</span>
                         <span>Servicio</span>
                         <span class="text-center">Estado</span>
                     </div>
 
-                    <div class="specialist-panel-today-table overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div class="specialist-panel-today-table overflow-hidden rounded-xl border border-slate-200 bg-white">
                         @forelse($todayBookings as $booking)
-                            <div class="specialist-panel-table-row grid grid-cols-[120px_1fr_1fr_120px] items-center gap-4 px-4 py-4">
-                                <div class="text-sm font-bold text-slate-800">
+                            <div class="specialist-panel-table-row grid grid-cols-[112px_1fr_1fr_118px] items-center gap-3 px-3 py-3">
+                                <div class="text-xs font-bold text-slate-800">
                                     {{ optional($booking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}
                                     -
                                     {{ optional($booking->endAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}
@@ -489,10 +513,10 @@
                                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-600">
                                         {{ strtoupper(substr($booking->client->name ?? 'C', 0, 2)) }}
                                     </div>
-                                    <span class="text-sm font-medium text-slate-700">{{ $booking->client->name ?? 'Cliente sin nombre' }}</span>
+                                    <span class="text-xs font-medium text-slate-700">{{ $booking->client->name ?? 'Cliente sin nombre' }}</span>
                                 </div>
 
-                                <div class="text-sm font-medium text-slate-600">{{ $booking->service->name ?? 'Servicio' }}</div>
+                                <div class="text-xs font-medium text-slate-600">{{ $booking->service->name ?? 'Servicio' }}</div>
 
                                 <div class="text-center">
                                     <span class="inline-flex rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] {{ strtoupper($booking->status) === 'CONFIRMED' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600' }}">
@@ -507,7 +531,7 @@
                         @endforelse
                     </div>
 
-                    <div class="mt-5 text-center">
+                    <div class="mt-4 text-center">
                         <a href="{{ route('agenda') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 transition hover:text-indigo-500">
                             Ver todas las citas de hoy
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
@@ -518,23 +542,23 @@
                 </article>
 
                 <!-- DISPONIBILIDAD SEMANAL -->
-                <article class="specialist-panel-card specialist-panel-availability-card self-stretch rounded-[1.9rem] px-6 py-5 md:px-7">
-                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">Disponibilidad semanal</p>
+                <article class="specialist-panel-card specialist-panel-availability-card self-stretch rounded-[1rem] px-5 py-4">
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">Disponibilidad semanal</p>
 
                     <div class="specialist-panel-availability-list mt-2 divide-y divide-slate-100">
                         @php($enabledAvailability = collect($availability)->filter(fn ($slot) => $slot['enabled'])->values())
                         @forelse($enabledAvailability as $slot)
-                            <div class="flex w-full flex-row items-center justify-between gap-3 py-2.5">
-                                <div class="flex w-32 shrink-0 items-center gap-2">
+                            <div class="flex w-full flex-row items-center justify-between gap-3 py-2">
+                                <div class="flex w-28 shrink-0 items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <span class="text-sm font-bold text-slate-700">{{ $slot['day'] }}</span>
+                                    <span class="text-xs font-bold text-slate-700">{{ $slot['day'] }}</span>
                                 </div>
 
-                                <span class="flex-1 text-center text-sm font-medium text-slate-500">{{ $slot['hours'] }}</span>
+                                <span class="flex-1 text-center text-xs font-medium text-slate-500">{{ $slot['hours'] }}</span>
 
-                                <span class="inline-flex w-28 shrink-0 items-center justify-center rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                                <span class="inline-flex w-24 shrink-0 items-center justify-center rounded-full bg-emerald-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-600">
                                     Disponible
                                 </span>
                             </div>
@@ -549,11 +573,11 @@
             </section>
 
             <!-- Servicios Asignados -->
-            <section class="specialist-panel-card specialist-panel-services-card rounded-[1.9rem] px-6 py-5 md:px-7">
+            <section class="specialist-panel-card specialist-panel-services-card rounded-[1rem] px-5 py-4">
                 <p class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Servicios asignados</p>
-                <div class="mt-4 grid gap-4 2xl:grid-cols-2 xl:grid-cols-1">
+                <div class="mt-3 grid gap-3 xl:grid-cols-2">
                     @forelse($specialist->services as $service)
-                        <article class="specialist-panel-service-tile flex items-center justify-between gap-4 rounded-[1.35rem] px-5 py-4 specialist-panel-service-row">
+                        <article class="specialist-panel-service-tile flex items-center justify-between gap-4 rounded-xl px-4 py-3 specialist-panel-service-row">
                             <div class="flex min-w-0 items-center gap-4">
                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
@@ -561,14 +585,14 @@
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="text-lg font-black text-slate-900">{{ $service->name }}</h3>
-                                    <p class="specialist-panel-service-copy specialist-panel-service-copy mt-1 text-sm leading-snug text-slate-500 specialist-panel-service-copy">{{ $service->description ?: 'Servicio asignado al especialista.' }}</p>
+                                    <h3 class="text-base font-black text-slate-900">{{ $service->name }}</h3>
+                                    <p class="specialist-panel-service-copy mt-1 text-xs leading-snug text-slate-500">{{ $service->description ?: 'Servicio asignado al especialista.' }}</p>
                                 </div>
                             </div>
 
                             <div class="flex shrink-0 items-center gap-2 pl-4 specialist-panel-service-meta">
-                                <span class="rounded-full bg-slate-100 px-4 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-slate-600">{{ $service->durationMinutes }} min</span>
-                                <span class="rounded-full bg-emerald-100 px-4 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">${{ number_format((float) $service->price, 0, ',', '.') }} CLP</span>
+                                <span class="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">{{ $service->durationMinutes }} min</span>
+                                <span class="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">${{ number_format((float) $service->price, 0, ',', '.') }} CLP</span>
                             </div>
                         </article>
                     @empty
