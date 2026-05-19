@@ -535,11 +535,7 @@
                 font-size: 0.78rem;
             }
 
-            #agenda-calendar-wrapper.is-wide .fc {
-                min-width: 760px;
-            }
-
-            #agenda-calendar-wrapper:not(.is-wide) .fc {
+            #agenda-calendar-wrapper .fc {
                 min-width: 0;
             }
 
@@ -558,13 +554,8 @@
                 height: 3.6rem;
             }
 
-            #agenda-calendar-wrapper.is-wide .fc-event-mini-status,
-            #agenda-calendar-wrapper.is-wide .fc-event-specialist {
-                display: none;
-            }
-
-            #agenda-calendar-wrapper.is-wide .fc-event-card {
-                padding: 0.35rem 0.42rem;
+            .fc-event-card {
+                padding: 0.45rem 0.55rem;
             }
         }
 
@@ -1452,10 +1443,6 @@
                 return window.matchMedia('(max-width: 640px)').matches;
             }
 
-            function isWideCalendarView(viewType) {
-                return ['timeGridWeek', 'dayGridMonth'].includes(viewType);
-            }
-
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: isPhoneCalendar() ? 'timeGridDay' : 'timeGridWeek',
                 locale: 'es',
@@ -1482,7 +1469,7 @@
                 headerToolbar: {
                     left: 'prev,next',
                     center: 'title',
-                    right: isPhoneCalendar() ? 'today timeGridDay,timeGridWeek' : 'today dayGridMonth,timeGridWeek,timeGridDay'
+                    right: isPhoneCalendar() ? 'today' : 'today dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
                 eventContent: function(arg) {
@@ -1545,7 +1532,11 @@
                 eventClick: function(info) { updateDetail(info.event); },
                 eventDidMount: function(info) { info.el.setAttribute('data-agenda-event-id', info.event.id); },
                 datesSet: function(info) {
-                    calendarWrapper?.classList.toggle('is-wide', isWideCalendarView(info.view.type));
+                    if (isPhoneCalendar() && info.view.type !== 'timeGridDay') {
+                        calendar.changeView('timeGridDay');
+                        return;
+                    }
+                    calendarWrapper?.classList.remove('is-wide');
                     updateStats(calendar.getEvents());
                     if (!activeEvent) renderDaySummary();
                 },
