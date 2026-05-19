@@ -125,10 +125,15 @@ class CampaignController extends Controller
     {
         $this->ensureAdmin();
 
-        abort_if($campaign->status !== 'DRAFT', 422, 'Solo puede enviar campanas en borrador.');
+        if ($campaign->status !== 'DRAFT') {
+            return back()->with('error', 'Esta campana ya no esta en borrador. Solo se pueden enviar campanas con estado DRAFT.');
+        }
 
         $campaign->load('offer.service', 'offer.specialist');
-        $this->assertOfferCanBeSent($campaign->offer);
+
+        if ($error = $this->offerSendBlocker($campaign->offer)) {
+            return back()->with('error', $error);
+        }
 
         $recipients = $this->resolveRecipients($campaign);
         if ($recipients->isEmpty()) {
@@ -298,7 +303,7 @@ class CampaignController extends Controller
 
         return strtr($campaign->messageTemplate, [
             '{{nombre}}' => trim((string) ($client->name ?: 'cliente')),
-            '{{negocio}}' => config('app.name', 'Spa Ikigai Ovalle'),
+            '{{negocio}}' => config('app.name', 'Spa La Roca'),
             '{{oferta}}' => $offer?->name ?: 'esta promocion',
             '{{beneficio}}' => $benefit,
             '{{servicio}}' => $serviceName,
@@ -324,12 +329,31 @@ class CampaignController extends Controller
 
     private function assertOfferCanBeSent(?Offer $offer): void
     {
-        abort_if(! $offer, 422, 'La campana no tiene una oferta valida asociada.');
-        abort_if(! $offer->active, 422, 'La oferta asociada esta inactiva.');
+        if ($error = $this->offerSendBlocker($offer)) {
+            abort(422, $error);
+        }
+    }
+
+    private function offerSendBlocker(?Offer $offer): ?string
+    {
+        if (! $offer) {
+            return 'La campana no tiene una oferta valida asociada.';
+        }
+
+        if (! $offer->active) {
+            return 'La oferta asociada esta inactiva.';
+        }
 
         $now = now();
-        abort_if($offer->startsAt && $offer->startsAt->isFuture(), 422, 'La oferta asociada aun no inicia su vigencia.');
-        abort_if($offer->endsAt && $offer->endsAt->lt($now), 422, 'La oferta asociada ya vencio.');
+        if ($offer->startsAt && $offer->startsAt->isFuture()) {
+            return 'La oferta asociada aun no inicia su vigencia.';
+        }
+
+        if ($offer->endsAt && $offer->endsAt->lt($now)) {
+            return 'La oferta asociada ya vencio.';
+        }
+
+        return null;
     }
 
     private function chatbotEndpoint(string $path): string

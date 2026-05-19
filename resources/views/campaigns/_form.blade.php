@@ -197,7 +197,7 @@ const offersData = @json($offersJson);
 // Valores base del preview
 const previewValues = {
     '@{{nombre}}':    'María',
-    '@{{negocio}}':   'Spa Ikigai Ovalle',
+    '@{{negocio}}':   'Spa La Roca',
     '@{{oferta}}':    'Promo Mayo',
     '@{{beneficio}}': '20% de descuento',
     '@{{servicio}}':  'el servicio',

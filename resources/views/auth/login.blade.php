@@ -10,9 +10,9 @@
             <section class="hidden px-12 py-14 lg:flex lg:flex-col lg:justify-between">
                 <div>
                     <div class="inline-flex items-center gap-4 rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl font-black text-indigo-700 shadow-lg">IK</div>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl font-black text-indigo-700 shadow-lg">SR</div>
                         <div>
-                            <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">CRM Spa Ikigai</p>
+                            <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">CRM Spa La Roca</p>
                             <p class="mt-1 text-sm text-slate-300">Acceso interno del equipo</p>
                         </div>
                     </div>
@@ -54,9 +54,9 @@
                     <div class="rounded-[2rem] border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
                         <div class="lg:hidden">
                             <div class="inline-flex items-center gap-3 rounded-full bg-slate-100 px-4 py-2">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-700 text-lg font-black text-white">IK</div>
+                                <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-700 text-lg font-black text-white">SR</div>
                                 <div>
-                                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-indigo-700">Spa Ikigai</p>
+                                    <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-indigo-700">Spa La Roca</p>
                                     <p class="text-xs text-slate-500">Acceso interno</p>
                                 </div>
                             </div>
@@ -86,7 +86,7 @@
                                     autocomplete="email"
                                     autofocus
                                     class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 @error('email') border-rose-300 bg-rose-50 focus:border-rose-400 focus:ring-rose-100 @enderror"
-                                    placeholder="correo@spaikigai.cl"
+                                    placeholder="correo@spalaroca.cl"
                                 >
                                 @error('email')
                                     <p class="mt-2 text-sm font-medium text-rose-500">{{ $message }}</p>

@@ -566,7 +566,7 @@
             <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div class="max-w-2xl">
-                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">{{ auth()->user()?->isAdmin() ? 'Spa Ikigai' : 'Portal especialista' }}</p>
+                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">{{ auth()->user()?->isAdmin() ? 'Spa La Roca' : 'Portal especialista' }}</p>
                         <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">{{ auth()->user()?->isAdmin() ? 'Agenda de Reservas' : 'Mi Agenda de Atencion' }}</h1>
                         <p class="mt-3 text-sm text-slate-300 md:text-base">
                             {{ auth()->user()?->isAdmin()

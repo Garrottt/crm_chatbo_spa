@@ -114,7 +114,7 @@
         <div class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
             <p class="mb-1 text-[11px] font-bold uppercase tracking-widest text-emerald-600">Vista previa del mensaje WhatsApp</p>
             <p class="text-sm text-slate-700">
-                Hola <strong>María</strong>, hace un tiempo no te vemos por <strong>Spa Ikigai Ovalle</strong>.
+                Hola <strong>Maria</strong>, hace un tiempo no te vemos por <strong>Spa La Roca</strong>.
                 Tenemos <strong id="benefit-preview" class="text-emerald-700">—</strong> en <strong id="service-preview" class="text-emerald-700">el servicio</strong>.
                 Responde "reservar" y te ayudo con una hora.
             </p>
