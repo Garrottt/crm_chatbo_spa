@@ -1,9 +1,9 @@
 <x-app-layout>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="h-full overflow-y-auto bg-[#18181b] p-6 text-white md:p-8">
+<div class="h-full overflow-y-auto bg-[#18181b] p-4 text-white sm:p-6 md:p-8">
     <div class="mx-auto max-w-6xl">
-        <div class="mb-8 flex flex-col justify-between md:flex-row md:items-center">
+        <div class="mb-6 flex flex-col gap-5 lg:mb-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h1 class="mb-2 text-2xl font-bold tracking-tight">Estadisticas y Rendimiento</h1>
                 <p class="text-sm text-gray-400">
@@ -11,27 +11,27 @@
                 </p>
             </div>
 
-            <div class="mt-4 flex items-center gap-6 md:mt-0">
-                <select id="period-selector" onchange="window.location.href='?period='+this.value" class="mr-4 cursor-pointer rounded-lg border border-[#3f3f46] bg-[#27272a] px-3 py-1.5 text-sm outline-none focus:border-indigo-500">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:flex lg:items-center lg:gap-6">
+                <select id="period-selector" onchange="window.location.href='?period='+this.value" class="col-span-2 cursor-pointer rounded-lg border border-[#3f3f46] bg-[#27272a] px-3 py-2 text-sm outline-none focus:border-indigo-500 sm:col-span-1 lg:mr-4 lg:py-1.5">
                     <option value="este_mes" {{ $period == 'este_mes' ? 'selected' : '' }}>Este mes</option>
                     <option value="mes_pasado" {{ $period == 'mes_pasado' ? 'selected' : '' }}>Mes pasado</option>
                     <option value="ultimos_30" {{ $period == 'ultimos_30' ? 'selected' : '' }}>Ultimos 30 dias</option>
                     <option value="este_trimestre" {{ $period == 'este_trimestre' ? 'selected' : '' }}>Este trimestre</option>
                 </select>
 
-                <div class="text-right">
+                <div class="rounded-xl bg-white/5 px-3 py-2 text-left sm:bg-transparent sm:p-0 sm:text-right">
                     <p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">Ingresos</p>
                     <p class="text-lg font-bold leading-none">${{ number_format($stats['revenue'], 0, ',', '.') }}</p>
                 </div>
-                <div class="text-right">
+                <div class="rounded-xl bg-white/5 px-3 py-2 text-left sm:bg-transparent sm:p-0 sm:text-right">
                     <p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">Citas</p>
                     <p class="text-lg font-bold leading-none">{{ $stats['appointments'] }}</p>
                 </div>
-                <div class="text-right">
+                <div class="rounded-xl bg-white/5 px-3 py-2 text-left sm:bg-transparent sm:p-0 sm:text-right">
                     <p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">Cancelacion</p>
                     <p class="text-lg font-bold leading-none">{{ number_format($stats['cancellationRate'], 1) }}%</p>
                 </div>
-                <div class="text-right">
+                <div class="rounded-xl bg-white/5 px-3 py-2 text-left sm:bg-transparent sm:p-0 sm:text-right">
                     <p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">Ticket prom.</p>
                     <p class="text-lg font-bold leading-none">${{ number_format($stats['avgTicket'], 0, ',', '.') }}</p>
                 </div>

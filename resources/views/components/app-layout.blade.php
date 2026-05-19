@@ -13,8 +13,8 @@
 </head>
 <body class="bg-gray-100">
 
-    <div class="flex h-screen overflow-hidden">
-        <div class="w-16 flex flex-col items-center py-6 bg-indigo-900 text-white shadow-xl z-20">
+    <div class="crm-app-shell flex h-dvh overflow-hidden pb-16 lg:pb-0">
+        <div class="hidden w-16 flex-col items-center py-6 bg-indigo-900 text-white shadow-xl z-20 lg:flex">
             <div class="mb-8 p-2 bg-white rounded-lg">
                 <span class="text-indigo-900 font-black text-xl">SR</span>
             </div>
@@ -108,9 +108,9 @@
             </div>
         </div>
 
-        <main class="relative flex-1 flex flex-col overflow-hidden">
+        <main class="relative flex-1 flex flex-col overflow-hidden min-w-0">
             @auth
-                <div class="absolute right-6 top-5 z-40" data-alert-widget>
+                <div class="absolute right-4 top-4 z-40 sm:right-6 sm:top-5" data-alert-widget>
                     <button type="button" data-alert-toggle class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-lg shadow-slate-300/50 ring-1 ring-slate-200 transition hover:bg-slate-50" title="Alertas">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
@@ -118,7 +118,7 @@
                         <span data-alert-count class="absolute -right-1 -top-1 hidden min-w-5 rounded-full bg-rose-500 px-1.5 py-0.5 text-center text-[10px] font-black text-white">0</span>
                     </button>
 
-                    <div data-alert-panel class="hidden absolute right-0 mt-3 w-[22rem] overflow-hidden rounded-[1.5rem] bg-white shadow-2xl shadow-slate-300/60 ring-1 ring-slate-200">
+                    <div data-alert-panel class="hidden absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-[22rem] overflow-hidden rounded-[1.5rem] bg-white shadow-2xl shadow-slate-300/60 ring-1 ring-slate-200">
                         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Alertas</p>
@@ -138,6 +138,52 @@
 
             {{ $slot }}
         </main>
+
+        @auth
+            <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-indigo-800/70 bg-indigo-950/95 px-2 py-2 text-white shadow-[0_-16px_40px_rgba(15,23,42,0.22)] backdrop-blur lg:hidden">
+                <div class="mx-auto grid max-w-xl {{ auth()->user()?->isAdmin() ? 'grid-cols-5' : 'grid-cols-3' }} gap-1">
+                    @if(auth()->user()?->isAdmin())
+                        <a href="/chat" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('chat*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                            Chat
+                        </a>
+                    @else
+                        <a href="/mi-panel" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('mi-panel*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" /></svg>
+                            Panel
+                        </a>
+                    @endif
+
+                    <a href="/agenda" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('agenda*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Agenda
+                    </a>
+
+                    @if(auth()->user()?->isAdmin())
+                        <a href="/dashboard" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('dashboard*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2" /></svg>
+                            Stats
+                        </a>
+                        <a href="/services" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('services*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10M7 17h6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            Servicios
+                        </a>
+                        <a href="/campaigns" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold {{ request()->is('campaigns*') || request()->is('offers*') || request()->is('specialists*') ? 'bg-indigo-700 text-white' : 'text-indigo-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10" /></svg>
+                            Mas
+                        </a>
+                    @else
+                        <form method="POST" action="{{ route('logout') }}" class="contents">
+                            @csrf
+                            <button type="submit" class="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[10px] font-bold text-indigo-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="mb-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1" /></svg>
+                                Salir
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </nav>
+        @endauth
     </div>
 
     @livewireScripts

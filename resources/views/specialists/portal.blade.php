@@ -259,8 +259,13 @@
         }
 
         @media (max-width: 768px) {
+            .specialist-panel-shell {
+                padding: 1rem;
+            }
+
             .specialist-hero-title {
-                font-size: 2.35rem;
+                font-size: 2rem;
+                line-height: 1;
             }
 
             .specialist-hero-subtitle {
@@ -276,12 +281,34 @@
 
             .specialist-summary-grid {
                 min-height: 0;
+                height: auto;
+                transform: none;
+            }
+
+            .specialist-panel-next-body {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .specialist-panel-next-time {
+                align-items: flex-start;
+                text-align: left;
+            }
+
+            .specialist-panel-today-scroll {
+                overflow-x: auto;
+                padding-bottom: 0.25rem;
+            }
+
+            .specialist-panel-today-header,
+            .specialist-panel-table-row {
+                min-width: 620px;
             }
         }
     </style>
     @endpush
 
-    <div class="specialist-panel-shell h-full overflow-y-auto px-6 py-6 md:px-8">
+    <div class="specialist-panel-shell h-full overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 md:px-8">
         <div class="mx-auto max-w-[1240px] space-y-3">
 
             <!-- Hero Section -->
@@ -493,16 +520,17 @@
                 <article class="specialist-panel-card specialist-panel-today-card self-stretch rounded-[1rem] px-5 py-4">
                     <p class="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">Citas de hoy</p>
 
-                    <div class="grid grid-cols-[112px_1fr_1fr_118px] gap-3 px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                        <span>Hora</span>
-                        <span>Cliente</span>
-                        <span>Servicio</span>
-                        <span class="text-center">Estado</span>
-                    </div>
+                    <div class="specialist-panel-today-scroll">
+                        <div class="specialist-panel-today-header grid grid-cols-[112px_1fr_1fr_118px] gap-3 px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                            <span>Hora</span>
+                            <span>Cliente</span>
+                            <span>Servicio</span>
+                            <span class="text-center">Estado</span>
+                        </div>
 
-                    <div class="specialist-panel-today-table overflow-hidden rounded-xl border border-slate-200 bg-white">
-                        @forelse($todayBookings as $booking)
-                            <div class="specialist-panel-table-row grid grid-cols-[112px_1fr_1fr_118px] items-center gap-3 px-3 py-3">
+                        <div class="specialist-panel-today-table overflow-hidden rounded-xl border border-slate-200 bg-white">
+                            @forelse($todayBookings as $booking)
+                                <div class="specialist-panel-table-row grid grid-cols-[112px_1fr_1fr_118px] items-center gap-3 px-3 py-3">
                                 <div class="text-xs font-bold text-slate-800">
                                     {{ optional($booking->scheduledAt)->timezone('America/Santiago')->locale('es')->translatedFormat('H:i') }}
                                     -
@@ -524,12 +552,13 @@
                                         {{ $bookingStatus === 'CONFIRMED' ? 'Confirmada' : ($bookingStatus === 'COMPLETED' ? 'Completada' : 'Pendiente') }}
                                     </span>
                                 </div>
-                            </div>
-                        @empty
-                            <div class="px-5 py-8 text-center text-sm font-medium text-slate-500">
-                                No tiene citas agendadas para hoy.
-                            </div>
-                        @endforelse
+                                </div>
+                            @empty
+                                <div class="px-5 py-8 text-center text-sm font-medium text-slate-500">
+                                    No tiene citas agendadas para hoy.
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
 
                     <div class="mt-4 text-center">
@@ -607,4 +636,3 @@
         </div>
     </div>
 </x-app-layout>
-

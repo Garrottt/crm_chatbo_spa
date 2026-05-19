@@ -521,13 +521,33 @@
         }
 
         @media (max-width: 768px) {
+            .agenda-shell {
+                padding: 1rem;
+            }
+
             .fc .fc-toolbar-title {
-                font-size: 1.2rem;
+                font-size: 1.15rem;
+                text-align: center;
             }
 
             .fc .fc-button {
                 padding: 0.55rem 0.75rem;
-                font-size: 0.85rem;
+                font-size: 0.78rem;
+            }
+
+            .fc {
+                min-width: 760px;
+            }
+
+            .fc .fc-toolbar.fc-header-toolbar {
+                align-items: stretch;
+                gap: 0.65rem;
+            }
+
+            .fc .fc-toolbar-chunk {
+                display: flex;
+                justify-content: center;
+                width: 100%;
             }
         }
 
@@ -559,8 +579,8 @@
     </style>
     @endpush
 
-    <div class="agenda-shell h-full overflow-y-auto px-6 py-6 md:px-8">
-        <div class="mx-auto max-w-7xl space-y-6">
+    <div class="agenda-shell h-full overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 md:px-8">
+        <div class="mx-auto max-w-7xl space-y-4 sm:space-y-6">
 
             <!-- Hero -->
             <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
@@ -676,7 +696,7 @@
 
             <!-- Calendario + Panel lateral -->
             <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <div class="agenda-card rounded-[2rem] border border-white/70 bg-white/90 p-4 backdrop-blur md:p-6">
+                <div class="agenda-card overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-3 backdrop-blur sm:p-4 md:p-6">
                     <div id="calendar" class="rounded-3xl bg-white p-2 md:p-4"></div>
                 </div>
 
