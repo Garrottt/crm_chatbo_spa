@@ -535,8 +535,12 @@
                 font-size: 0.78rem;
             }
 
-            .fc {
+            #agenda-calendar-wrapper.is-wide .fc {
                 min-width: 760px;
+            }
+
+            #agenda-calendar-wrapper:not(.is-wide) .fc {
+                min-width: 0;
             }
 
             .fc .fc-toolbar.fc-header-toolbar {
@@ -548,6 +552,19 @@
                 display: flex;
                 justify-content: center;
                 width: 100%;
+            }
+
+            .fc .fc-timegrid-slot {
+                height: 3.6rem;
+            }
+
+            #agenda-calendar-wrapper.is-wide .fc-event-mini-status,
+            #agenda-calendar-wrapper.is-wide .fc-event-specialist {
+                display: none;
+            }
+
+            #agenda-calendar-wrapper.is-wide .fc-event-card {
+                padding: 0.35rem 0.42rem;
             }
         }
 
@@ -696,7 +713,7 @@
 
             <!-- Calendario + Panel lateral -->
             <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <div class="agenda-card overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-3 backdrop-blur sm:p-4 md:p-6">
+                <div id="agenda-calendar-wrapper" class="agenda-card overflow-x-auto rounded-[2rem] border border-white/70 bg-white/90 p-3 backdrop-blur sm:p-4 md:p-6">
                     <div id="calendar" class="rounded-3xl bg-white p-2 md:p-4"></div>
                 </div>
 
@@ -923,6 +940,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
+            var calendarWrapper = document.getElementById('agenda-calendar-wrapper');
             var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             var statTotal = document.getElementById('stat-total');
             var statConfirmed = document.getElementById('stat-confirmed');
@@ -1430,8 +1448,16 @@
                 });
             }
 
+            function isPhoneCalendar() {
+                return window.matchMedia('(max-width: 640px)').matches;
+            }
+
+            function isWideCalendarView(viewType) {
+                return ['timeGridWeek', 'dayGridMonth'].includes(viewType);
+            }
+
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
+                initialView: isPhoneCalendar() ? 'timeGridDay' : 'timeGridWeek',
                 locale: 'es',
                 slotMinTime: '08:00:00',
                 slotMaxTime: '20:00:00',
@@ -1454,9 +1480,9 @@
                 events: '/api/calendar-events',
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: isPhoneCalendar() ? 'today timeGridDay,timeGridWeek' : 'today dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
                 eventContent: function(arg) {
@@ -1518,7 +1544,8 @@
 
                 eventClick: function(info) { updateDetail(info.event); },
                 eventDidMount: function(info) { info.el.setAttribute('data-agenda-event-id', info.event.id); },
-                datesSet: function() {
+                datesSet: function(info) {
+                    calendarWrapper?.classList.toggle('is-wide', isWideCalendarView(info.view.type));
                     updateStats(calendar.getEvents());
                     if (!activeEvent) renderDaySummary();
                 },
