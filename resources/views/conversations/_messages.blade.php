@@ -7,8 +7,8 @@
         $isImage = $message->isImage();
         $hasText = filled(trim((string) $message->content));
     @endphp
-    <div class="flex {{ $isInbound ? 'justify-start' : 'justify-end' }}">
-        <div class="max-w-[78%] rounded-2xl px-4 py-3 shadow {{ $isInbound ? 'border border-slate-200 bg-white text-slate-800' : 'bg-indigo-600 text-white' }}">
+    <div class="flex min-w-0 {{ $isInbound ? 'justify-start' : 'justify-end' }}">
+        <div class="max-w-[88%] break-words rounded-2xl px-3 py-3 shadow sm:max-w-[78%] sm:px-4 {{ $isInbound ? 'border border-slate-200 bg-white text-slate-800' : 'bg-indigo-600 text-white' }}">
             <p class="text-[11px] font-bold uppercase tracking-[0.18em] {{ $isInbound ? 'text-slate-400' : 'text-white/70' }}">
                 {{ $isInbound ? 'Cliente' : 'Agente/Bot' }}
             </p>
@@ -20,7 +20,7 @@
                         alt="Imagen enviada en la conversacion"
                         loading="lazy"
                         decoding="async"
-                        class="max-h-80 w-auto rounded-2xl border border-black/5 object-contain shadow-sm"
+                        class="max-h-80 max-w-full rounded-2xl border border-black/5 object-contain shadow-sm"
                     >
                 </a>
             @elseif($hasMedia)
@@ -28,7 +28,7 @@
                     href="{{ $message->mediaUrl }}"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="mt-2 inline-flex items-center rounded-2xl border px-3 py-2 text-sm font-semibold {{ $isInbound ? 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100' : 'border-white/20 bg-white/10 text-white hover:bg-white/15' }}"
+                    class="mt-2 inline-flex max-w-full items-center rounded-2xl border px-3 py-2 text-sm font-semibold {{ $isInbound ? 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100' : 'border-white/20 bg-white/10 text-white hover:bg-white/15' }}"
                 >
                     Ver archivo adjunto
                 </a>
@@ -45,7 +45,7 @@
             @endif
 
             @if($hasText)
-                <p class="mt-2 whitespace-pre-line text-sm leading-6">{{ $message->content }}</p>
+                <p class="mt-2 whitespace-pre-wrap text-sm leading-6">{{ $message->content }}</p>
             @elseif(!$hasMediaReference)
                 <p class="mt-2 text-sm italic opacity-70">Mensaje sin contenido visible.</p>
             @endif

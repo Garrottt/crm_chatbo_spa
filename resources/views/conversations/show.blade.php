@@ -1,33 +1,33 @@
 <x-app-layout>
-    <div class="min-h-full overflow-y-auto bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-6 py-6 md:px-8">
-        <div class="mx-auto max-w-7xl space-y-6">
-            <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
+    <div class="min-h-full overflow-x-hidden overflow-y-auto bg-[linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)] px-3 py-4 pb-24 md:px-8 md:py-6 md:pb-8">
+        <div class="mx-auto w-full max-w-7xl space-y-4 md:space-y-6">
+            <section class="rounded-[1.5rem] bg-slate-900 px-5 py-5 text-white shadow-2xl md:rounded-[2rem] md:px-8 md:py-6">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">Conversacion</p>
-                        <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.3em] text-indigo-300 md:text-xs md:tracking-[0.35em]">Conversacion</p>
+                        <h1 class="mt-2 truncate text-3xl font-black tracking-tight md:mt-3 md:text-4xl">
                             {{ $conversation->client->name ?? $conversation->client->whatsappNumber }}
                         </h1>
-                        <p class="mt-3 text-sm text-slate-300 md:text-base">
+                        <p class="mt-2 break-words text-sm text-slate-300 md:mt-3 md:text-base">
                             Estado actual: {{ $conversation->currentIntent }} / {{ $conversation->currentStep }}
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap gap-3">
-                        <form method="POST" action="{{ route('conversations.pause', $conversation) }}">
+                    <div class="grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+                        <form method="POST" action="{{ route('conversations.pause', $conversation) }}" class="min-w-0">
                             @csrf
                             @method('PATCH')
-                            <button class="rounded-2xl bg-rose-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white">Pausar bot</button>
+                            <button class="w-full rounded-2xl bg-rose-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.16em] text-white sm:w-auto sm:tracking-[0.2em]">Pausar bot</button>
                         </form>
-                        <form method="POST" action="{{ route('conversations.resume', $conversation) }}">
+                        <form method="POST" action="{{ route('conversations.resume', $conversation) }}" class="min-w-0">
                             @csrf
                             @method('PATCH')
-                            <button class="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white">Reanudar bot</button>
+                            <button class="w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.16em] text-white sm:w-auto sm:tracking-[0.2em]">Reanudar bot</button>
                         </form>
-                        <form method="POST" action="{{ route('conversations.take-over', $conversation) }}">
+                        <form method="POST" action="{{ route('conversations.take-over', $conversation) }}" class="min-w-0">
                             @csrf
                             @method('PATCH')
-                            <button class="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white">Tomar control</button>
+                            <button class="w-full rounded-2xl bg-amber-500 px-4 py-3 text-sm font-bold uppercase tracking-[0.16em] text-white sm:w-auto sm:tracking-[0.2em]">Tomar control</button>
                         </form>
                     </div>
                 </div>
@@ -40,39 +40,39 @@
                 <div class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">{{ session('error') }}</div>
             @endif
 
-            <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <div class="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur">
-                    <div class="mb-4 flex items-center justify-between gap-4">
-                        <div>
+            <section class="grid min-w-0 gap-4 md:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <div class="min-w-0 rounded-[1.5rem] border border-white/70 bg-white/90 p-4 shadow-xl shadow-slate-200/60 backdrop-blur md:rounded-[2rem] md:p-6">
+                    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div class="min-w-0">
                             <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Mensajes</p>
                             <p class="mt-1 text-sm font-medium text-slate-600">La vista se actualiza automaticamente cada pocos segundos.</p>
                         </div>
-                        <span id="messages-count" class="rounded-full bg-slate-100 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
+                        <span id="messages-count" class="w-fit shrink-0 rounded-full bg-slate-100 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-600 md:tracking-[0.18em]">
                             {{ $conversation->messages->count() }} mensajes
                         </span>
                     </div>
 
-                    <div id="messages-panel" class="max-h-[68vh] overflow-y-auto rounded-[1.75rem] bg-slate-50 px-4 py-4">
+                    <div id="messages-panel" class="max-h-[58vh] overflow-x-hidden overflow-y-auto rounded-[1.25rem] bg-slate-50 px-3 py-3 md:max-h-[68vh] md:rounded-[1.75rem] md:px-4 md:py-4">
                         <div id="messages-list" class="space-y-4">
                             @include('conversations._messages', ['messages' => $conversation->messages->sortBy('createdAt')])
                         </div>
                     </div>
 
-                    <form id="manual-message-form" method="POST" action="{{ route('conversations.messages.store', $conversation) }}" class="mt-6 border-t border-slate-200 pt-6">
+                    <form id="manual-message-form" method="POST" action="{{ route('conversations.messages.store', $conversation) }}" class="mt-5 border-t border-slate-200 pt-5 md:mt-6 md:pt-6">
                         @csrf
                         <label for="content" class="mb-2 block text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Intervenir manualmente</label>
                         <textarea id="content" name="content" rows="4" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100">{{ old('content') }}</textarea>
                         @error('content')
                             <p class="mt-2 text-sm font-medium text-rose-500">{{ $message }}</p>
                         @enderror
-                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                             <p class="text-xs font-medium text-slate-500">Al enviar, la conversacion queda bajo control humano.</p>
-                            <button type="submit" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:bg-indigo-700">Enviar mensaje</button>
+                            <button type="submit" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold uppercase tracking-[0.16em] text-white transition hover:bg-indigo-700 sm:tracking-[0.2em]">Enviar mensaje</button>
                         </div>
                     </form>
                 </div>
 
-                <aside class="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur">
+                <aside class="min-w-0 rounded-[1.5rem] border border-white/70 bg-white/90 p-4 shadow-xl shadow-slate-200/60 backdrop-blur md:rounded-[2rem] md:p-6">
                     <div class="space-y-4 text-sm">
                         <div class="rounded-2xl bg-slate-50 px-4 py-4">
                             <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Bot pausado</p>
