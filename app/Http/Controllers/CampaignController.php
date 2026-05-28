@@ -300,14 +300,21 @@ class CampaignController extends Controller
         $offer = $campaign->offer;
         $serviceName = $offer?->service?->name ?: 'nuestros servicios';
         $benefit = $this->formatBenefit($offer);
+        $businessName = config('app.name') ?: env('APP_NAME', 'LipoExpress');
 
-        return strtr($campaign->messageTemplate, [
+        $message = strtr($campaign->messageTemplate, [
             '{{nombre}}' => trim((string) ($client->name ?: 'cliente')),
-            '{{negocio}}' => config('app.name', 'LipoExpress'),
+            '{{negocio}}' => $businessName,
             '{{oferta}}' => $offer?->name ?: 'esta promocion',
             '{{beneficio}}' => $benefit,
             '{{servicio}}' => $serviceName,
         ]);
+
+        return str_replace(
+            ['por Laravel', 'por Spa La Roca', 'Spa La Roca'],
+            ['por ' . $businessName, 'por ' . $businessName, $businessName],
+            $message
+        );
     }
 
     private function formatBenefit(?Offer $offer): string
