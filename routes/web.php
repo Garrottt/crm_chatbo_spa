@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     })->name('agenda');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/report.pdf', [DashboardController::class, 'exportMonthlyPdf'])->name('dashboard.report.pdf');
 
     Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
     Route::get('/alerts/summary', [AlertController::class, 'summary'])->name('alerts.summary');

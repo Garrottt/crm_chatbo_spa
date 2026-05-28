@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -12,11 +13,37 @@ class DashboardController extends Controller
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
 
-        $period = $request->get('period', 'este_mes');
         $now = Carbon::now();
+        $reportMonth = $this->normalizeReportMonth($request->get('report_month'), $now);
+        $month = Carbon::createFromFormat('!Y-m', $reportMonth)->startOfMonth();
+        [$start, $end, $prevStart, $prevEnd] = $this->resolveMonthPeriods($month);
 
-        [$start, $end, $prevStart, $prevEnd] = $this->resolvePeriods($period, $now);
+        $data = $this->buildDashboardData($start, $end, $prevStart, $prevEnd);
 
+        return view('dashboard', array_merge($data, [
+            'reportMonth' => $reportMonth,
+        ]));
+    }
+
+    public function exportMonthlyPdf(Request $request)
+    {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
+        $reportMonth = $this->normalizeReportMonth($request->get('report_month'), Carbon::now());
+        $month = Carbon::createFromFormat('!Y-m', $reportMonth)->startOfMonth();
+        [$start, $end, $prevStart, $prevEnd] = $this->resolveMonthPeriods($month);
+        $data = $this->buildDashboardData($start, $end, $prevStart, $prevEnd);
+
+        $pdf = Pdf::loadView('dashboard-report-pdf', array_merge($data, [
+            'reportMonth' => $month->locale('es')->translatedFormat('F Y'),
+            'generatedAt' => Carbon::now(),
+        ]))->setPaper('letter', 'portrait');
+
+        return $pdf->download('reporte-estadisticas-' . $month->format('Y-m') . '.pdf');
+    }
+
+    private function buildDashboardData(Carbon $start, Carbon $end, Carbon $prevStart, Carbon $prevEnd): array
+    {
         $bookings = Booking::with(['service', 'specialist'])
             ->whereBetween('scheduledAt', [$start, $end])
             ->get();
@@ -146,14 +173,13 @@ class DashboardController extends Controller
             'previous' => $this->formatPeriodLabel($prevStart, $prevEnd),
         ];
 
-        return view('dashboard', compact(
+        return compact(
             'stats',
-            'period',
             'lineChartData',
             'donutChartData',
             'specialistsPerformance',
             'periodLabels'
-        ));
+        );
     }
 
     private function resolvePeriods(string $period, Carbon $now): array
@@ -190,6 +216,29 @@ class DashboardController extends Controller
         }
 
         return [$start, $end, $prevStart, $prevEnd];
+    }
+
+    private function resolveMonthPeriods(Carbon $month): array
+    {
+        $start = $month->copy()->startOfMonth();
+        $end = $month->copy()->endOfMonth();
+        $prevStart = $start->copy()->subMonthNoOverflow()->startOfMonth();
+        $prevEnd = $prevStart->copy()->endOfMonth();
+
+        return [$start, $end, $prevStart, $prevEnd];
+    }
+
+    private function normalizeReportMonth(?string $month, Carbon $fallback): string
+    {
+        if (is_string($month) && preg_match('/^\d{4}-\d{2}$/', $month)) {
+            try {
+                return Carbon::createFromFormat('!Y-m', $month)->format('Y-m');
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+
+        return $fallback->format('Y-m');
     }
 
     private function formatPeriodLabel(Carbon $start, Carbon $end): string

@@ -2,7 +2,7 @@
     <div class="w-1/3 bg-white border-r overflow-y-auto">
         <div class="p-5 border-b bg-white">
             <h1 class="text-xl font-extrabold text-gray-800">Mensajes</h1>
-            <p class="text-xs text-gray-400 uppercase tracking-widest mt-1">Chatbot Spa La Roca</p>
+            <p class="text-xs text-gray-400 uppercase tracking-widest mt-1">Chatbot LipoExpress</p>
         </div>
         @foreach($conversations as $conv)
             <div wire:click="loadConversation('{{ $conv->id }}')" 
@@ -58,7 +58,7 @@
                             {{ $isAgent ? 'bg-emerald-500 text-white rounded-2xl rounded-tr-none shadow-lg' : '' }}
                         ">
                             <p class="text-[9px] mb-1 font-black uppercase tracking-tighter {{ $isInbound ? 'text-gray-400' : 'text-white/70' }}">
-                                {{ $isBot ? 'IA Spa La Roca' : ($isAgent ? 'Agente' : 'Cliente') }}
+                                {{ $isBot ? 'IA LipoExpress' : ($isAgent ? 'Agente' : 'Cliente') }}
                             </p>
                             
                             @if($hasMedia && $isImage)

@@ -591,34 +591,25 @@
         <div class="mx-auto max-w-7xl space-y-4 sm:space-y-6">
 
             <!-- Hero -->
-            <section class="rounded-[2rem] bg-slate-900 px-6 py-6 text-white shadow-2xl md:px-8">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <section class="rounded-[2rem] bg-slate-900 px-6 py-5 text-white shadow-2xl md:px-8 md:py-5">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div class="max-w-2xl">
-                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">{{ auth()->user()?->isAdmin() ? 'Spa La Roca' : 'Portal especialista' }}</p>
-                        <h1 class="mt-3 text-3xl font-black tracking-tight md:text-4xl">{{ auth()->user()?->isAdmin() ? 'Agenda de Reservas' : 'Mi Agenda de Atencion' }}</h1>
-                        <p class="mt-3 text-sm text-slate-300 md:text-base">
+                        <p class="text-xs font-bold uppercase tracking-[0.35em] text-indigo-300">{{ auth()->user()?->isAdmin() ? 'LipoExpress' : 'Portal especialista' }}</p>
+                        <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">{{ auth()->user()?->isAdmin() ? 'Agenda de Reservas' : 'Mi Agenda de Atencion' }}</h1>
+                        <p class="mt-2 text-sm text-slate-300 md:text-base">
                             {{ auth()->user()?->isAdmin()
                                 ? 'Organiza citas, visualiza la carga semanal y gestiona cambios sin salir del calendario.'
                                 : 'Revise sus citas asignadas, su carga semanal y el detalle de cada atencion en un solo calendario.' }}
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Vista</p>
-                            <p class="mt-2 text-lg font-bold">Semanal</p>
-                        </div>
-                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Horario</p>
-                            <p class="mt-2 text-lg font-bold">08:00 - 20:00</p>
-                        </div>
-                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur col-span-2 md:col-span-1">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Estado</p>
-                            <p class="mt-2 text-lg font-bold text-emerald-300">Operativo</p>
-                        </div>
-                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur col-span-2 md:col-span-3">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Actualizacion</p>
-                            <p id="agenda-refresh-status" class="mt-2 text-sm font-bold text-slate-200">Sincronizacion automatica cada 15 segundos</p>
+                    <div class="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur lg:mt-0">
+                        <div class="flex items-center gap-4">
+                            <span class="h-3 w-3 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.55)]"></span>
+                            <div class="min-w-0">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Actualizacion</p>
+                                <p id="agenda-refresh-status" class="mt-1 text-sm font-bold leading-5 text-slate-200">Sincronizacion automatica cada 15 segundos</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1126,6 +1117,15 @@
                 if (refreshStatus) refreshStatus.textContent = message;
             }
 
+            function setLastSyncStatus(created, updated) {
+                var timestamp = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
+                if (created || updated) {
+                    setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Nuevas: ' + created + ' - Cambios: ' + updated);
+                } else {
+                    setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Sin cambios recientes');
+                }
+            }
+
             function syncOccupancyBar(value) {
                 var occupancyBar = document.getElementById('detail-occupancy-bar');
                 if (!occupancyBar) return;
@@ -1330,7 +1330,14 @@
             }
 
             function refetchCalendarEvents(showIndicator) {
-                if (showIndicator) setRefreshStatus('Actualizando agenda...');
+                if (showIndicator) {
+                    setRefreshStatus('Actualizando agenda...');
+                    window.setTimeout(function() {
+                        if (refreshStatus && refreshStatus.textContent === 'Actualizando agenda...') {
+                            setLastSyncStatus(0, 0);
+                        }
+                    }, 2500);
+                }
                 calendar.refetchEvents();
             }
 
@@ -1547,12 +1554,7 @@
                     if (!activeEvent) renderDaySummary();
                     highlightChangedEvents(diff);
                     lastRefreshDiff = { created: diff.createdIds.length, updated: diff.updatedIds.length };
-                    var timestamp = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
-                    if (lastRefreshDiff.created || lastRefreshDiff.updated) {
-                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Nuevas: ' + lastRefreshDiff.created + ' - Cambios: ' + lastRefreshDiff.updated);
-                    } else {
-                        setRefreshStatus('Ultima sincronizacion: ' + timestamp + ' - Sin cambios recientes');
-                    }
+                    setLastSyncStatus(lastRefreshDiff.created, lastRefreshDiff.updated);
                 }
             });
 

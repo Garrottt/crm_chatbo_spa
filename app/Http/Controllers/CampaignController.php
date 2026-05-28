@@ -303,7 +303,7 @@ class CampaignController extends Controller
 
         return strtr($campaign->messageTemplate, [
             '{{nombre}}' => trim((string) ($client->name ?: 'cliente')),
-            '{{negocio}}' => config('app.name', 'Spa La Roca'),
+            '{{negocio}}' => config('app.name', 'LipoExpress'),
             '{{oferta}}' => $offer?->name ?: 'esta promocion',
             '{{beneficio}}' => $benefit,
             '{{servicio}}' => $serviceName,

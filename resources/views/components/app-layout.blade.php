@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CRM Spa La Roca</title>
+    <title>CRM LipoExpress</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -16,7 +16,7 @@
     <div class="crm-app-shell flex h-dvh overflow-hidden pb-16 lg:pb-0">
         <div class="hidden w-16 flex-col items-center py-6 bg-indigo-900 text-white shadow-xl z-20 lg:flex">
             <div class="mb-8 p-2 bg-white rounded-lg">
-                <span class="text-indigo-900 font-black text-xl">SR</span>
+                <span class="text-indigo-900 font-black text-xl">LE</span>
             </div>
 
             @if(auth()->user()?->isAdmin())

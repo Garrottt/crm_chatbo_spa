@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CRM Spa La Roca</title>
+    <title>CRM LipoExpress</title>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
@@ -17,10 +17,10 @@
             <div class="group w-20 hover:w-64 transition-all duration-300 ease-in-out flex flex-col py-6 bg-indigo-900 text-white shadow-xl z-50">
                 <div class="mb-8 mx-2 px-3 flex items-center">
                     <div class="p-2 bg-white rounded-lg flex-shrink-0 flex items-center justify-center">
-                        <span class="text-indigo-900 font-black text-xl">SR</span>
+                        <span class="text-indigo-900 font-black text-xl">LE</span>
                     </div>
                     <span class="font-bold text-2xl tracking-widest overflow-hidden whitespace-nowrap max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ml-0 group-hover:ml-4">
-                        LA ROCA
+                        LIPOEXPRESS
                     </span>
                 </div>
 
